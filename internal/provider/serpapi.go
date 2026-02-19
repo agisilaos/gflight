@@ -48,7 +48,7 @@ type serpFlight struct {
 
 func (p SerpAPIProvider) Search(query model.SearchQuery) (model.SearchResult, error) {
 	if p.APIKey == "" {
-		return model.SearchResult{}, fmt.Errorf("serpapi key missing: set GFLIGHT_SERPAPI_KEY or config.serp_api_key")
+		return model.SearchResult{}, fmt.Errorf("%w: serpapi key missing: set GFLIGHT_SERPAPI_KEY or config.serp_api_key", ErrAuthRequired)
 	}
 	client := p.Client
 	if client == nil {

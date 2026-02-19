@@ -3,17 +3,17 @@ package model
 import "time"
 
 type SearchQuery struct {
-	From     string
-	To       string
-	Depart   string
-	Return   string
-	Cabin    string
-	Adults   int
-	Children int
-	Nonstop  bool
-	MaxPrice int
-	Currency string
-	SortBy   string
+	From     string `json:"from"`
+	To       string `json:"to"`
+	Depart   string `json:"depart"`
+	Return   string `json:"return,omitempty"`
+	Cabin    string `json:"cabin"`
+	Adults   int    `json:"adults"`
+	Children int    `json:"children"`
+	Nonstop  bool   `json:"nonstop"`
+	MaxPrice int    `json:"max_price,omitempty"`
+	Currency string `json:"currency"`
+	SortBy   string `json:"sort_by"`
 }
 
 type Flight struct {

@@ -77,6 +77,9 @@ func TestValidateQuery(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected validation error for missing fields")
 	}
+	if got := ExitCode(err); got != ExitInvalidUsage {
+		t.Fatalf("expected usage exit code, got %d", got)
+	}
 }
 
 func onlyWatchID(t *testing.T, stateDir string) string {

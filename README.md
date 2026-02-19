@@ -48,6 +48,16 @@ gflight watch run --all --once
 - `stdout` carries primary output; `stderr` carries diagnostics.
 - `--no-input` avoids prompts.
 - `--plain` emits stable line-based output for shell pipelines.
+- Query objects in JSON now use normalized `snake_case` keys (for example `query.from`, `query.depart`, `query.sort_by`).
+
+## Exit Codes
+
+- `0` success
+- `1` generic/runtime failure
+- `2` invalid usage/validation
+- `3` auth required/missing credentials
+- `4` provider/upstream failure
+- `6` notification delivery failure
 
 ## Config
 
