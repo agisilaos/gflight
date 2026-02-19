@@ -137,6 +137,9 @@ COMMANDS:
   search             One-shot flight search
   watch create       Create a watch
   watch list         List watches
+  watch enable       Enable a watch
+  watch disable      Disable a watch
+  watch delete       Delete a watch
   watch run          Execute watches and emit notifications
   watch test         Simulate a watch alert
   notify test        Test notification channels
@@ -243,7 +246,7 @@ func (a App) watcherStore(stateOverride string) (watcher.Store, error) {
 
 func (a App) cmdWatch(g globalFlags, args []string) error {
 	if len(args) == 0 {
-		return errors.New("watch requires subcommand: create|list|run|test")
+		return errors.New("watch requires subcommand: create|list|enable|disable|delete|run|test")
 	}
 	sub := args[0]
 	argv := args[1:]
@@ -252,6 +255,12 @@ func (a App) cmdWatch(g globalFlags, args []string) error {
 		return a.cmdWatchCreate(g, argv)
 	case "list":
 		return a.cmdWatchList(g, argv)
+	case "enable":
+		return a.cmdWatchSetEnabled(g, argv, true)
+	case "disable":
+		return a.cmdWatchSetEnabled(g, argv, false)
+	case "delete":
+		return a.cmdWatchDelete(g, argv)
 	case "run":
 		return a.cmdWatchRun(g, argv)
 	case "test":
@@ -341,6 +350,83 @@ func (a App) cmdWatchList(g globalFlags, args []string) error {
 		fmt.Printf("%s\t%s\t%s->%s\t%s\ttarget=%d\n", w.ID, w.Name, w.Query.From, w.Query.To, w.Query.Depart, w.TargetPrice)
 	}
 	return nil
+}
+
+func (a App) cmdWatchSetEnabled(g globalFlags, args []string, enabled bool) error {
+	fs := flag.NewFlagSet("watch set-enabled", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	id := fs.String("id", "", "Watch ID")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if *id == "" {
+		return errors.New("--id is required")
+	}
+	store, err := a.watcherStore(g.StateDir)
+	if err != nil {
+		return err
+	}
+	ws, err := store.Load()
+	if err != nil {
+		return err
+	}
+	for i := range ws.Watches {
+		if ws.Watches[i].ID != *id {
+			continue
+		}
+		ws.Watches[i].Enabled = enabled
+		ws.Watches[i].UpdatedAt = time.Now().UTC()
+		if err := store.Save(ws); err != nil {
+			return err
+		}
+		return writeMaybeJSON(g, ws.Watches[i])
+	}
+	return fmt.Errorf("watch not found: %s", *id)
+}
+
+func (a App) cmdWatchDelete(g globalFlags, args []string) error {
+	fs := flag.NewFlagSet("watch delete", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	id := fs.String("id", "", "Watch ID")
+	force := fs.Bool("force", false, "Delete without confirmation")
+	confirm := fs.String("confirm", "", "Confirmation token (watch ID)")
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if *id == "" {
+		return errors.New("--id is required")
+	}
+	if !*force && *confirm != *id {
+		return errors.New("destructive action: pass --force or --confirm with the watch ID")
+	}
+	if g.NoInput && !*force {
+		return errors.New("--no-input requires --force for watch delete")
+	}
+	store, err := a.watcherStore(g.StateDir)
+	if err != nil {
+		return err
+	}
+	ws, err := store.Load()
+	if err != nil {
+		return err
+	}
+	filtered := make([]model.Watch, 0, len(ws.Watches))
+	found := false
+	for _, w := range ws.Watches {
+		if w.ID == *id {
+			found = true
+			continue
+		}
+		filtered = append(filtered, w)
+	}
+	if !found {
+		return fmt.Errorf("watch not found: %s", *id)
+	}
+	ws.Watches = filtered
+	if err := store.Save(ws); err != nil {
+		return err
+	}
+	return writeMaybeJSON(g, map[string]any{"deleted": *id})
 }
 
 func (a App) cmdWatchRun(g globalFlags, args []string) error {

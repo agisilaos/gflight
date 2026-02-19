@@ -26,8 +26,21 @@ gflight search --from SFO --to ATH --depart 2026-06-10 --return 2026-06-24 --jso
 
 ```bash
 gflight watch create --name summer-athens --from SFO --to ATH --depart 2026-06-10 --return 2026-06-24 --target-price 700 --notify-terminal --notify-email --email-to you@example.com
+gflight watch list
+gflight watch disable --id w_123
+gflight watch enable --id w_123
+gflight watch delete --id w_123 --force
 gflight watch run --all --once
 ```
+
+## Watch Commands
+
+- `gflight watch create ...` create a saved watch.
+- `gflight watch list` list existing watches.
+- `gflight watch enable --id <watch-id>` enable a watch.
+- `gflight watch disable --id <watch-id>` disable a watch.
+- `gflight watch delete --id <watch-id> --force` delete a watch.
+  - Safety: requires `--force` or `--confirm <watch-id>`.
 
 ## Agent-Friendly Contract
 
