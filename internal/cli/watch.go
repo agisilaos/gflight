@@ -232,60 +232,16 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	}
 	p := a.resolveProvider(cfg)
 	n := notify.Notifier{Config: cfg}
-	alerts := []model.Alert{}
-	notifyErrs := make([]string, 0)
-
-	for i := range ws.Watches {
-		w := &ws.Watches[i]
-		if !w.Enabled {
-			continue
-		}
-		if *watchID != "" && w.ID != *watchID {
-			continue
-		}
-		if *watchID == "" && !*runAll {
-			continue
-		}
-		res, err := p.Search(w.Query)
-		if err != nil {
-			if g.Verbose {
-				fmt.Fprintf(os.Stderr, "watch %s failed: %v\n", w.ID, err)
-			}
-			continue
-		}
-		lowest := 0
-		currency := "USD"
-		if len(res.Flights) > 0 {
-			lowest = res.Flights[0].Price
-			currency = res.Flights[0].Currency
-		}
-		reason := ""
-		if w.TargetPrice > 0 && lowest > 0 && lowest <= w.TargetPrice {
-			reason = fmt.Sprintf("price reached target <= %d", w.TargetPrice)
-		} else if w.LastLowestPrice > 0 && lowest > 0 && lowest < w.LastLowestPrice {
-			reason = fmt.Sprintf("price dropped from %d to %d", w.LastLowestPrice, lowest)
-		}
-		w.LastRunAt = time.Now().UTC()
-		if lowest > 0 {
-			w.LastLowestPrice = lowest
-		}
-		w.UpdatedAt = time.Now().UTC()
-		if reason != "" {
-			alert := model.Alert{
-				WatchID:     w.ID,
-				WatchName:   w.Name,
-				TriggeredAt: time.Now().UTC(),
-				Reason:      reason,
-				LowestPrice: lowest,
-				Currency:    currency,
-				URL:         res.URL,
-			}
-			alerts = append(alerts, alert)
-			if err := a.sendWatchNotifications(n, *w, alert); err != nil {
-				notifyErrs = append(notifyErrs, err.Error())
-			}
-		}
-	}
+	alerts, notifyErrs := runWatchPass(
+		ws.Watches,
+		*watchID,
+		*runAll,
+		p.Search,
+		func(w model.Watch, alert model.Alert) error { return a.sendWatchNotifications(n, w, alert) },
+		time.Now().UTC(),
+		g.Verbose,
+		os.Stderr,
+	)
 	if err := store.Save(ws); err != nil {
 		return wrapExitError(ExitGenericFailure, err)
 	}

@@ -76,6 +76,14 @@ Supported config keys:
 - `smtp_sender`
 - `notify_email`
 
+## Architecture
+
+- `internal/cli`: command handlers and CLI-facing validation/output.
+- `internal/cli/watch_service.go`: watch evaluation/selection/run logic (pure service helpers, unit-tested).
+- `internal/provider`: flight data providers (`serpapi`, `google-url`).
+- `internal/notify`: terminal and SMTP notification delivery.
+- `internal/watcher`: watch persistence store.
+
 ## Release
 
 1. `make release-check VERSION=vX.Y.Z`
