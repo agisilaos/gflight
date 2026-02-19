@@ -80,6 +80,8 @@ Supported config keys:
 
 - `internal/cli`: command handlers and CLI-facing validation/output.
 - `internal/cli/watch_service.go`: watch evaluation/selection/run logic (pure service helpers, unit-tested).
+- `internal/cli/auth_service.go`: auth status + login mutation/validation helpers.
+- `internal/cli/config_service.go`: config key get/set mutation/validation helpers.
 - `internal/provider`: flight data providers (`serpapi`, `google-url`).
 - `internal/notify`: terminal and SMTP notification delivery.
 - `internal/watcher`: watch persistence store.

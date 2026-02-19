@@ -17,12 +17,7 @@ func (a App) cmdAuth(g globalFlags, args []string) error {
 		if err != nil {
 			return wrapExitError(ExitGenericFailure, err)
 		}
-		status := map[string]any{
-			"provider":        cfg.Provider,
-			"serpapi_key":     cfg.SerpAPIKey != "",
-			"smtp_configured": cfg.SMTPHost != "" && cfg.SMTPUsername != "" && cfg.SMTPPassword != "" && cfg.SMTPSender != "",
-		}
-		return writeMaybeJSON(g, status)
+		return writeMaybeJSON(g, authStatus(cfg))
 	case "login":
 		cfg, err := config.Load()
 		if err != nil {
@@ -35,11 +30,8 @@ func (a App) cmdAuth(g globalFlags, args []string) error {
 		if err := fs.Parse(args[1:]); err != nil {
 			return newExitError(ExitInvalidUsage, "%v", err)
 		}
-		if *providerName != "" {
-			cfg.Provider = *providerName
-		}
-		if *apiKey != "" {
-			cfg.SerpAPIKey = *apiKey
+		if err := applyAuthLogin(&cfg, *providerName, *apiKey); err != nil {
+			return newExitError(ExitInvalidUsage, "%v", err)
 		}
 		if err := config.Save(cfg); err != nil {
 			return wrapExitError(ExitGenericFailure, err)
