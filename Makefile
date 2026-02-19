@@ -1,4 +1,4 @@
-.PHONY: build test release-check release-dry-run release
+.PHONY: build test docs-check release-check release-dry-run release
 
 BINARY := gflight
 
@@ -7,6 +7,9 @@ build:
 
 test:
 	go test ./...
+
+docs-check:
+	./scripts/docs-check.sh
 
 release-check:
 	./scripts/release-check.sh "$(VERSION)"

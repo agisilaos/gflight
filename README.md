@@ -2,13 +2,13 @@
 
 `gflight` is a macOS-focused CLI to search Google Flights results, create price watches, and notify via terminal and email.
 
-## Install / Build
+## Install
 
 ```bash
 go build ./cmd/gflight
 ```
 
-## Quick Start
+## Usage
 
 1. Configure provider auth (SerpAPI key for Google Flights data):
 
@@ -91,3 +91,12 @@ Supported config keys:
 1. `make release-check VERSION=vX.Y.Z`
 2. `make release-dry-run VERSION=vX.Y.Z`
 3. `make release VERSION=vX.Y.Z`
+
+Release scripts:
+
+- `scripts/release-check.sh`
+- `scripts/release.sh`
+
+## Docs
+
+- `docs/README.md` overview of project docs.
