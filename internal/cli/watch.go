@@ -136,7 +136,14 @@ func (a App) cmdWatchList(g globalFlags, args []string) error {
 		fmt.Println("No watches configured")
 		return nil
 	}
+	if g.Plain {
+		fmt.Println("id\tname\tenabled\ttarget_price\tfrom\tto\tdepart")
+	}
 	for _, w := range ws.Watches {
+		if g.Plain {
+			fmt.Printf("%s\t%s\t%t\t%d\t%s\t%s\t%s\n", w.ID, w.Name, w.Enabled, w.TargetPrice, w.Query.From, w.Query.To, w.Query.Depart)
+			continue
+		}
 		fmt.Printf("%s\t%s\t%s->%s\t%s\ttarget=%d\tenabled=%t\n", w.ID, w.Name, w.Query.From, w.Query.To, w.Query.Depart, w.TargetPrice, w.Enabled)
 	}
 	return nil

@@ -32,6 +32,7 @@ gflight watch enable --id w_123
 gflight watch delete --id w_123 --force
 gflight watch run --all --once
 gflight doctor --json
+gflight doctor --strict
 ```
 
 ## Watch Commands
@@ -40,6 +41,7 @@ gflight doctor --json
   - `--plain` output: `watch_id=<id>`
   - Supports `--notify-webhook` and optional `--webhook-url`.
 - `gflight watch list` list existing watches.
+  - `--plain` output header: `id	name	enabled	target_price	from	to	depart`
 - `gflight watch enable --id <watch-id>` enable a watch.
   - `--plain` output: `watch_id=<id>\tenabled=true`
 - `gflight watch disable --id <watch-id>` disable a watch.
@@ -68,6 +70,7 @@ gflight doctor --json
 - `--plain` emits stable line-based output for shell pipelines.
 - `--timeout` overrides provider request timeout per command (`search`, `watch run`).
 - `doctor --json` provides preflight checks for provider auth, writable paths, and notification config.
+- `doctor --strict` treats warnings as failures (CI/agent preflight mode).
 - Query objects in JSON now use normalized `snake_case` keys (for example `query.from`, `query.depart`, `query.sort_by`).
 
 ## Exit Codes

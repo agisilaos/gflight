@@ -188,6 +188,32 @@ func TestWatchDeletePlainPrintsDeletedID(t *testing.T) {
 	}
 }
 
+func TestWatchListPlainUsesStableSchema(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	stateDir := t.TempDir()
+	app := NewApp("test")
+	if err := app.Run([]string{"--state-dir", stateDir, "watch", "create", "--name", "athens", "--from", "SFO", "--to", "ATH", "--depart", "2026-06-10"}); err != nil {
+		t.Fatalf("create watch: %v", err)
+	}
+	out, err := captureStdoutForRun(t, func() error {
+		return app.Run([]string{"--plain", "--state-dir", stateDir, "watch", "list"})
+	})
+	if err != nil {
+		t.Fatalf("watch list failed: %v", err)
+	}
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(lines) < 2 {
+		t.Fatalf("expected header+row output, got: %q", out)
+	}
+	if lines[0] != "id\tname\tenabled\ttarget_price\tfrom\tto\tdepart" {
+		t.Fatalf("unexpected header: %q", lines[0])
+	}
+	cols := strings.Split(lines[1], "\t")
+	if len(cols) != 7 {
+		t.Fatalf("expected 7 columns in row, got %d (%q)", len(cols), lines[1])
+	}
+}
+
 func captureStdoutForRun(t *testing.T, fn func() error) (string, error) {
 	t.Helper()
 	oldOut := os.Stdout

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,14 +24,24 @@ type doctorReport struct {
 }
 
 func (a App) cmdDoctor(g globalFlags, args []string) error {
-	if len(args) != 0 {
-		return newExitError(ExitInvalidUsage, "usage: gflight doctor")
+	fs := flag.NewFlagSet("doctor", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	strict := fs.Bool("strict", false, "Treat warnings as failures")
+	if err := fs.Parse(args); err != nil {
+		return newExitError(ExitInvalidUsage, "%v", err)
+	}
+	if len(fs.Args()) != 0 {
+		return newExitError(ExitInvalidUsage, "usage: gflight doctor [--strict]")
 	}
 	cfg, err := config.Load()
 	if err != nil {
 		return wrapExitError(ExitGenericFailure, err)
 	}
 	report := runDoctorChecks(cfg, g.StateDir)
+	effectiveFailures := report.Failures
+	if *strict {
+		effectiveFailures += report.Warnings
+	}
 	if g.JSON {
 		if err := writeJSON(report); err != nil {
 			return wrapExitError(ExitGenericFailure, err)
@@ -41,7 +52,10 @@ func (a App) cmdDoctor(g globalFlags, args []string) error {
 		}
 		fmt.Printf("summary\tfailures=%d\twarnings=%d\n", report.Failures, report.Warnings)
 	}
-	if !report.OK {
+	if effectiveFailures > 0 {
+		if *strict && report.Warnings > 0 && report.Failures == 0 {
+			return newExitError(ExitGenericFailure, "doctor strict mode found %d warning(s)", report.Warnings)
+		}
 		return newExitError(ExitGenericFailure, "doctor found %d failing check(s)", report.Failures)
 	}
 	return nil

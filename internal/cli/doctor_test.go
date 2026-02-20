@@ -39,3 +39,16 @@ func TestCmdDoctorUsage(t *testing.T) {
 		t.Fatalf("expected invalid usage, got err=%v code=%d", err, ExitCode(err))
 	}
 }
+
+func TestDoctorStrictFailsOnWarnings(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	app := NewApp("test")
+	if err := app.Run([]string{"auth", "login", "--provider", "google-url"}); err != nil {
+		t.Fatalf("auth login: %v", err)
+	}
+	err := app.Run([]string{"doctor", "--strict"})
+	if ExitCode(err) != ExitGenericFailure {
+		t.Fatalf("expected strict doctor failure, got err=%v code=%d", err, ExitCode(err))
+	}
+}
