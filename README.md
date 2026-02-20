@@ -104,6 +104,71 @@ Related environment variables:
 - `internal/notify`: terminal and SMTP notification delivery.
 - `internal/watcher`: watch persistence store.
 
+## Scheduled Runs (No Daemon)
+
+Use your scheduler to run:
+
+```bash
+gflight --json watch run --all --once
+```
+
+### macOS launchd (recommended)
+
+1. Build and choose stable absolute paths:
+
+```bash
+cd /Users/agis/projects/gflight
+go build -o /Users/agis/bin/gflight ./cmd/gflight
+```
+
+2. Create `~/Library/LaunchAgents/com.agis.gflight.watch.plist`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.agis.gflight.watch</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/zsh</string>
+      <string>-lc</string>
+      <string>GFLIGHT_BIN=/Users/agis/bin/gflight GFLIGHT_CONFIG_HOME=/Users/agis/.config GFLIGHT_STATE_HOME=/Users/agis/.local/state /Users/agis/projects/gflight/scripts/run-watch-once.sh</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>900</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/gflight.watch.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/gflight.watch.err.log</string>
+  </dict>
+</plist>
+```
+
+3. Load and verify:
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.agis.gflight.watch.plist 2>/dev/null || true
+launchctl load ~/Library/LaunchAgents/com.agis.gflight.watch.plist
+launchctl list | grep gflight
+tail -f /tmp/gflight.watch.out.log /tmp/gflight.watch.err.log
+```
+
+### cron (alternative)
+
+Every 15 minutes:
+
+```cron
+*/15 * * * * GFLIGHT_BIN=/Users/agis/bin/gflight GFLIGHT_CONFIG_HOME=/Users/agis/.config GFLIGHT_STATE_HOME=/Users/agis/.local/state /Users/agis/projects/gflight/scripts/run-watch-once.sh >> /tmp/gflight.watch.cron.log 2>&1
+```
+
 ## Release
 
 1. `make release-check VERSION=vX.Y.Z`
