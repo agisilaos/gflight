@@ -25,6 +25,5 @@ if [[ -n "${GFLIGHT_STATE_HOME:-}" ]]; then
   export XDG_STATE_HOME="$GFLIGHT_STATE_HOME"
 fi
 
-echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] running gflight watch pass"
+echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] running gflight watch pass" >&2
 "$GFLIGHT_BIN" --json watch run --all --once
-

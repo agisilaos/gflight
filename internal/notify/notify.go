@@ -3,6 +3,7 @@ package notify
 import (
 	"fmt"
 	"net/smtp"
+	"os"
 	"strings"
 
 	"github.com/agisilaos/gflight/internal/config"
@@ -14,7 +15,7 @@ type Notifier struct {
 }
 
 func (n Notifier) SendTerminal(alert model.Alert) {
-	fmt.Printf("ALERT %s (%s): %s. Lowest price: %d %s\n%s\n",
+	fmt.Fprintf(os.Stderr, "ALERT %s (%s): %s. Lowest price: %d %s\n%s\n",
 		alert.WatchName,
 		alert.WatchID,
 		alert.Reason,

@@ -57,7 +57,7 @@ gflight watch run --all --once
 ## Agent-Friendly Contract
 
 - `--json` for deterministic structured output.
-- `stdout` carries primary output; `stderr` carries diagnostics.
+- `stdout` carries primary output; `stderr` carries diagnostics/alerts.
 - `--no-input` avoids prompts.
 - `--plain` emits stable line-based output for shell pipelines.
 - `--timeout` overrides provider request timeout per command (`search`, `watch run`).
