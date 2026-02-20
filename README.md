@@ -41,6 +41,14 @@ gflight watch run --all --once
 - `gflight watch disable --id <watch-id>` disable a watch.
 - `gflight watch delete --id <watch-id> --force` delete a watch.
   - Safety: requires `--force` or `--confirm <watch-id>`.
+- `gflight watch run --all --once` executes selected watches and prints a summary.
+  - Human mode summary: `evaluated`, `triggered`, `provider_failures`, `notify_failures`.
+  - JSON mode returns:
+    - `evaluated`
+    - `triggered`
+    - `provider_failures`
+    - `notify_failures`
+    - `alerts` (triggered alert objects)
 
 ## Agent-Friendly Contract
 

@@ -11,6 +11,14 @@ import (
 type watchSearchFunc func(model.SearchQuery) (model.SearchResult, error)
 type watchNotifyFunc func(model.Watch, model.Alert) error
 
+type watchRunReport struct {
+	Evaluated        int           `json:"evaluated"`
+	Triggered        int           `json:"triggered"`
+	ProviderFailures int           `json:"provider_failures"`
+	NotifyFailures   int           `json:"notify_failures"`
+	Alerts           []model.Alert `json:"alerts"`
+}
+
 func runWatchPass(
 	watches []model.Watch,
 	watchID string,
@@ -20,8 +28,10 @@ func runWatchPass(
 	now time.Time,
 	verbose bool,
 	errw io.Writer,
-) ([]model.Alert, []string) {
-	alerts := make([]model.Alert, 0)
+) (watchRunReport, []string) {
+	report := watchRunReport{
+		Alerts: make([]model.Alert, 0),
+	}
 	notifyErrs := make([]string, 0)
 
 	for i := range watches {
@@ -29,8 +39,10 @@ func runWatchPass(
 		if !shouldRunWatch(*w, watchID, runAll) {
 			continue
 		}
+		report.Evaluated++
 		res, err := search(w.Query)
 		if err != nil {
+			report.ProviderFailures++
 			if verbose && errw != nil {
 				fmt.Fprintf(errw, "watch %s failed: %v\n", w.ID, err)
 			}
@@ -40,12 +52,14 @@ func runWatchPass(
 		if !triggered {
 			continue
 		}
-		alerts = append(alerts, alert)
+		report.Triggered++
+		report.Alerts = append(report.Alerts, alert)
 		if err := notify(*w, alert); err != nil {
 			notifyErrs = append(notifyErrs, err.Error())
+			report.NotifyFailures++
 		}
 	}
-	return alerts, notifyErrs
+	return report, notifyErrs
 }
 
 func shouldRunWatch(w model.Watch, watchID string, runAll bool) bool {

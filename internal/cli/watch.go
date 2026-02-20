@@ -232,7 +232,7 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	}
 	p := a.resolveProvider(cfg)
 	n := notify.Notifier{Config: cfg}
-	alerts, notifyErrs := runWatchPass(
+	report, notifyErrs := runWatchPass(
 		ws.Watches,
 		*watchID,
 		*runAll,
@@ -245,17 +245,32 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	if err := store.Save(ws); err != nil {
 		return wrapExitError(ExitGenericFailure, err)
 	}
+	if g.JSON {
+		if err := writeJSON(report); err != nil {
+			return wrapExitError(ExitGenericFailure, err)
+		}
+	}
+	if !g.JSON {
+		fmt.Printf(
+			"Watch run summary: evaluated=%d triggered=%d provider_failures=%d notify_failures=%d\n",
+			report.Evaluated,
+			report.Triggered,
+			report.ProviderFailures,
+			report.NotifyFailures,
+		)
+	}
 	if len(notifyErrs) > 0 {
 		return newExitError(ExitNotifyFailure, "%s", strings.Join(notifyErrs, "; "))
 	}
-	if g.JSON {
-		return writeJSON(alerts)
-	}
-	if len(alerts) == 0 {
-		fmt.Println("No alerts triggered")
+	if report.Triggered == 0 {
+		if !g.JSON {
+			fmt.Println("No alerts triggered")
+		}
 		return nil
 	}
-	fmt.Printf("Triggered %d alert(s)\n", len(alerts))
+	if !g.JSON {
+		fmt.Printf("Triggered %d alert(s)\n", report.Triggered)
+	}
 	return nil
 }
 

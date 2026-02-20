@@ -70,11 +70,20 @@ func TestRunWatchPassCollectsNotifyErrors(t *testing.T) {
 	}
 
 	alerts, notifyErrs := runWatchPass(watches, "", true, search, notify, now, false, nil)
-	if len(alerts) != 1 {
-		t.Fatalf("expected 1 alert, got %d", len(alerts))
+	if alerts.Triggered != 1 {
+		t.Fatalf("expected 1 triggered alert, got %d", alerts.Triggered)
+	}
+	if len(alerts.Alerts) != 1 {
+		t.Fatalf("expected 1 alert payload, got %d", len(alerts.Alerts))
 	}
 	if len(notifyErrs) != 1 {
 		t.Fatalf("expected 1 notify error, got %d", len(notifyErrs))
+	}
+	if alerts.NotifyFailures != 1 {
+		t.Fatalf("expected 1 notify failure count, got %d", alerts.NotifyFailures)
+	}
+	if alerts.Evaluated != 1 {
+		t.Fatalf("expected 1 evaluated watch, got %d", alerts.Evaluated)
 	}
 }
 
@@ -88,11 +97,17 @@ func TestRunWatchPassVerboseProviderErrors(t *testing.T) {
 	var buf bytes.Buffer
 
 	alerts, notifyErrs := runWatchPass(watches, "", true, search, notify, now, true, &buf)
-	if len(alerts) != 0 {
+	if len(alerts.Alerts) != 0 {
 		t.Fatalf("expected no alerts")
 	}
 	if len(notifyErrs) != 0 {
 		t.Fatalf("expected no notify errs")
+	}
+	if alerts.ProviderFailures != 1 {
+		t.Fatalf("expected 1 provider failure, got %d", alerts.ProviderFailures)
+	}
+	if alerts.Evaluated != 1 {
+		t.Fatalf("expected 1 evaluated watch, got %d", alerts.Evaluated)
 	}
 	if !strings.Contains(buf.String(), "provider timeout") {
 		t.Fatalf("expected verbose error output, got: %s", buf.String())
