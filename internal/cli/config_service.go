@@ -30,6 +30,8 @@ func configGet(cfg config.Config, key string) (string, bool) {
 		return strconv.Itoa(cfg.ProviderRetries), true
 	case "provider_backoff_ms":
 		return strconv.Itoa(cfg.ProviderBackoffMS), true
+	case "webhook_url":
+		return cfg.WebhookURL, true
 	default:
 		return "", false
 	}
@@ -80,6 +82,8 @@ func configSet(cfg *config.Config, key, value string) error {
 			return fmt.Errorf("provider_backoff_ms must be positive integer")
 		}
 		cfg.ProviderBackoffMS = n
+	case "webhook_url":
+		cfg.WebhookURL = value
 	default:
 		return fmt.Errorf("unknown key %q", key)
 	}

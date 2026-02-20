@@ -31,15 +31,21 @@ gflight watch disable --id w_123
 gflight watch enable --id w_123
 gflight watch delete --id w_123 --force
 gflight watch run --all --once
+gflight doctor --json
 ```
 
 ## Watch Commands
 
 - `gflight watch create ...` create a saved watch.
+  - `--plain` output: `watch_id=<id>`
+  - Supports `--notify-webhook` and optional `--webhook-url`.
 - `gflight watch list` list existing watches.
 - `gflight watch enable --id <watch-id>` enable a watch.
+  - `--plain` output: `watch_id=<id>\tenabled=true`
 - `gflight watch disable --id <watch-id>` disable a watch.
+  - `--plain` output: `watch_id=<id>\tenabled=false`
 - `gflight watch delete --id <watch-id> --force` delete a watch.
+  - `--plain` output: `deleted_id=<id>`
   - Safety: requires `--force` or `--confirm <watch-id>`.
 - `gflight watch run --all --once` executes selected watches and prints a summary.
   - Requires exactly one selector: `--all` or `--id <watch-id>`.
@@ -61,6 +67,7 @@ gflight watch run --all --once
 - `--no-input` avoids prompts.
 - `--plain` emits stable line-based output for shell pipelines.
 - `--timeout` overrides provider request timeout per command (`search`, `watch run`).
+- `doctor --json` provides preflight checks for provider auth, writable paths, and notification config.
 - Query objects in JSON now use normalized `snake_case` keys (for example `query.from`, `query.depart`, `query.sort_by`).
 
 ## Exit Codes
@@ -85,6 +92,7 @@ Supported config keys:
 - `provider_timeout_seconds`
 - `provider_retries`
 - `provider_backoff_ms`
+- `webhook_url`
 - `smtp_host`
 - `smtp_port`
 - `smtp_user`
@@ -97,6 +105,15 @@ Related environment variables:
 - `GFLIGHT_PROVIDER_TIMEOUT_SECONDS`
 - `GFLIGHT_PROVIDER_RETRIES`
 - `GFLIGHT_PROVIDER_BACKOFF_MS`
+- `GFLIGHT_WEBHOOK_URL`
+
+Notification channel test examples:
+
+```bash
+gflight notify test --channel terminal
+gflight notify test --channel email --to you@example.com
+gflight notify test --channel webhook --url https://example.com/hook
+```
 
 ## Architecture
 

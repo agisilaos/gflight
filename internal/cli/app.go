@@ -59,6 +59,8 @@ func (a App) Run(args []string) error {
 		return a.cmdAuth(g, argv)
 	case "config":
 		return a.cmdConfig(g, argv)
+	case "doctor":
+		return a.cmdDoctor(g, argv)
 	default:
 		return newExitError(ExitInvalidUsage, "unknown command %q\n\n%s", cmd, usageText())
 	}
@@ -83,6 +85,7 @@ COMMANDS:
   auth login         Store API key interactively
   auth status        Show auth/config status
   config get/set     Read/write config values
+  doctor             Run automation preflight checks
 
 GLOBAL FLAGS:
   --json             JSON output

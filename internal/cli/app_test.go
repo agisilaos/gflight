@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -147,6 +149,59 @@ func TestWatchRunReturnsProviderFailureWhenAllEvaluatedFail(t *testing.T) {
 	if ExitCode(err) != ExitProviderFailure {
 		t.Fatalf("expected provider failure exit code, got err=%v code=%d", err, ExitCode(err))
 	}
+}
+
+func TestWatchCreatePlainPrintsStableID(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	stateDir := t.TempDir()
+	app := NewApp("test")
+
+	out, err := captureStdoutForRun(t, func() error {
+		return app.Run([]string{"--plain", "--state-dir", stateDir, "watch", "create", "--name", "athens", "--from", "SFO", "--to", "ATH", "--depart", "2026-06-10"})
+	})
+	if err != nil {
+		t.Fatalf("watch create failed: %v", err)
+	}
+	if !strings.HasPrefix(strings.TrimSpace(out), "watch_id=w_") {
+		t.Fatalf("expected stable plain watch_id output, got: %q", out)
+	}
+}
+
+func TestWatchDeletePlainPrintsDeletedID(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	stateDir := t.TempDir()
+	app := NewApp("test")
+
+	if err := app.Run([]string{"--state-dir", stateDir, "watch", "create", "--name", "athens", "--from", "SFO", "--to", "ATH", "--depart", "2026-06-10"}); err != nil {
+		t.Fatalf("create watch: %v", err)
+	}
+	id := onlyWatchID(t, stateDir)
+
+	out, err := captureStdoutForRun(t, func() error {
+		return app.Run([]string{"--plain", "--state-dir", stateDir, "watch", "delete", "--id", id, "--force"})
+	})
+	if err != nil {
+		t.Fatalf("watch delete failed: %v", err)
+	}
+	if strings.TrimSpace(out) != "deleted_id="+id {
+		t.Fatalf("expected plain deleted_id output, got: %q", out)
+	}
+}
+
+func captureStdoutForRun(t *testing.T, fn func() error) (string, error) {
+	t.Helper()
+	oldOut := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("create stdout pipe: %v", err)
+	}
+	os.Stdout = w
+	runErr := fn()
+	_ = w.Close()
+	os.Stdout = oldOut
+	b, _ := io.ReadAll(r)
+	_ = r.Close()
+	return string(b), runErr
 }
 
 func onlyWatchID(t *testing.T, stateDir string) string {

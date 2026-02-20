@@ -16,8 +16,9 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 	}
 	fs := flag.NewFlagSet("notify test", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
-	channel := fs.String("channel", "terminal", "terminal|email")
+	channel := fs.String("channel", "terminal", "terminal|email|webhook")
 	to := fs.String("to", "", "Email recipient")
+	url := fs.String("url", "", "Webhook URL override")
 	if err := fs.Parse(args[1:]); err != nil {
 		return newExitError(ExitInvalidUsage, "%v", err)
 	}
@@ -48,7 +49,16 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 			return wrapExitError(ExitNotifyFailure, err)
 		}
 		return writeMaybeJSON(g, map[string]any{"ok": true, "channel": "email", "to": recipient})
+	case "webhook":
+		webhookURL := *url
+		if webhookURL == "" {
+			webhookURL = cfg.WebhookURL
+		}
+		if err := n.SendWebhook(webhookURL, alert); err != nil {
+			return wrapExitError(ExitNotifyFailure, err)
+		}
+		return writeMaybeJSON(g, map[string]any{"ok": true, "channel": "webhook", "url": webhookURL})
 	default:
-		return newExitError(ExitInvalidUsage, "--channel must be terminal or email")
+		return newExitError(ExitInvalidUsage, "--channel must be terminal, email, or webhook")
 	}
 }

@@ -46,7 +46,9 @@ type Watch struct {
 	TargetPrice     int         `json:"target_price"`
 	NotifyTerminal  bool        `json:"notify_terminal"`
 	NotifyEmail     bool        `json:"notify_email"`
+	NotifyWebhook   bool        `json:"notify_webhook"`
 	EmailTo         string      `json:"email_to,omitempty"`
+	WebhookURL      string      `json:"webhook_url,omitempty"`
 	LastLowestPrice int         `json:"last_lowest_price"`
 	LastRunAt       time.Time   `json:"last_run_at,omitempty"`
 	CreatedAt       time.Time   `json:"created_at"`

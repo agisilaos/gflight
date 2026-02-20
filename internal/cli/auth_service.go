@@ -9,9 +9,10 @@ import (
 
 func authStatus(cfg config.Config) map[string]any {
 	return map[string]any{
-		"provider":        cfg.Provider,
-		"serpapi_key":     cfg.SerpAPIKey != "",
-		"smtp_configured": cfg.SMTPHost != "" && cfg.SMTPUsername != "" && cfg.SMTPPassword != "" && cfg.SMTPSender != "",
+		"provider":           cfg.Provider,
+		"serpapi_key":        cfg.SerpAPIKey != "",
+		"smtp_configured":    cfg.SMTPHost != "" && cfg.SMTPUsername != "" && cfg.SMTPPassword != "" && cfg.SMTPSender != "",
+		"webhook_configured": cfg.WebhookURL != "",
 	}
 }
 

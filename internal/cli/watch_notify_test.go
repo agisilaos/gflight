@@ -30,6 +30,21 @@ func TestSendWatchNotificationsReturnsEmailError(t *testing.T) {
 	}
 }
 
+func TestSendWatchNotificationsReturnsWebhookError(t *testing.T) {
+	app := NewApp("test")
+	n := notify.Notifier{Config: config.Config{}}
+	w := model.Watch{
+		ID:            "w_2",
+		NotifyWebhook: true,
+	}
+	alert := model.Alert{WatchID: "w_2", WatchName: "test", TriggeredAt: time.Now().UTC()}
+
+	err := app.sendWatchNotifications(n, w, alert)
+	if err == nil {
+		t.Fatalf("expected webhook notification error")
+	}
+}
+
 func TestWatchTestJSONKeepsStdoutClean(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
 	stateDir := t.TempDir()

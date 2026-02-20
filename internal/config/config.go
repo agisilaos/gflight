@@ -15,6 +15,7 @@ type Config struct {
 	ProviderTimeoutSec int    `json:"provider_timeout_seconds,omitempty"`
 	ProviderRetries    int    `json:"provider_retries,omitempty"`
 	ProviderBackoffMS  int    `json:"provider_backoff_ms,omitempty"`
+	WebhookURL         string `json:"webhook_url,omitempty"`
 	SMTPHost           string `json:"smtp_host,omitempty"`
 	SMTPPort           int    `json:"smtp_port,omitempty"`
 	SMTPUsername       string `json:"smtp_username,omitempty"`
@@ -139,6 +140,9 @@ func applyEnv(cfg *Config) {
 		if n, err := strconv.Atoi(v); err == nil && n > 0 {
 			cfg.ProviderBackoffMS = n
 		}
+	}
+	if v := os.Getenv("GFLIGHT_WEBHOOK_URL"); v != "" {
+		cfg.WebhookURL = v
 	}
 	if v := os.Getenv("GFLIGHT_SMTP_HOST"); v != "" {
 		cfg.SMTPHost = v

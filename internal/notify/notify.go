@@ -1,10 +1,15 @@
 package notify
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"net/smtp"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/agisilaos/gflight/internal/config"
 	"github.com/agisilaos/gflight/internal/model"
@@ -50,4 +55,31 @@ func (n Notifier) SendEmail(to string, alert model.Alert) error {
 		body,
 	}, "\r\n")
 	return smtp.SendMail(addr, auth, n.Config.SMTPSender, []string{to}, []byte(msg))
+}
+
+func (n Notifier) SendWebhook(url string, alert model.Alert) error {
+	if strings.TrimSpace(url) == "" {
+		return fmt.Errorf("missing webhook url")
+	}
+	payload, err := json.Marshal(alert)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(payload))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
+		return fmt.Errorf("webhook request failed: %s: %s", resp.Status, strings.TrimSpace(string(body)))
+	}
+	return nil
 }

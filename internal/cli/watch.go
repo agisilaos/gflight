@@ -55,7 +55,9 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 	target := fs.Int("target-price", 0, "Alert when price <= target")
 	notifyTerminal := fs.Bool("notify-terminal", true, "Send terminal notifications")
 	notifyEmail := fs.Bool("notify-email", false, "Send email notifications")
+	notifyWebhook := fs.Bool("notify-webhook", false, "Send webhook notifications")
 	emailTo := fs.String("email-to", "", "Email recipient")
+	webhookURL := fs.String("webhook-url", "", "Webhook URL override")
 	dryRun := fs.Bool("dry-run", false, "Preview watch without saving")
 	if err := fs.Parse(args); err != nil {
 		return newExitError(ExitInvalidUsage, "%v", err)
@@ -73,6 +75,9 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 	if *emailTo == "" {
 		*emailTo = cfg.DefaultNotifyEmail
 	}
+	if *webhookURL == "" {
+		*webhookURL = cfg.WebhookURL
+	}
 	w := model.Watch{
 		ID:             fmt.Sprintf("w_%d", time.Now().UnixNano()),
 		Name:           *name,
@@ -81,7 +86,9 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 		TargetPrice:    *target,
 		NotifyTerminal: *notifyTerminal,
 		NotifyEmail:    *notifyEmail,
+		NotifyWebhook:  *notifyWebhook,
 		EmailTo:        *emailTo,
+		WebhookURL:     *webhookURL,
 		CreatedAt:      time.Now().UTC(),
 		UpdatedAt:      time.Now().UTC(),
 	}
@@ -99,6 +106,10 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 	ws.Watches = append(ws.Watches, w)
 	if err := store.Save(ws); err != nil {
 		return wrapExitError(ExitGenericFailure, err)
+	}
+	if g.Plain && !g.JSON {
+		fmt.Printf("watch_id=%s\n", w.ID)
+		return nil
 	}
 	return writeMaybeJSON(g, w)
 }
@@ -158,6 +169,10 @@ func (a App) cmdWatchSetEnabled(g globalFlags, args []string, enabled bool) erro
 		if err := store.Save(ws); err != nil {
 			return wrapExitError(ExitGenericFailure, err)
 		}
+		if g.Plain && !g.JSON {
+			fmt.Printf("watch_id=%s\tenabled=%t\n", ws.Watches[i].ID, ws.Watches[i].Enabled)
+			return nil
+		}
 		return writeMaybeJSON(g, ws.Watches[i])
 	}
 	return newExitError(ExitGenericFailure, "watch not found: %s", *id)
@@ -204,6 +219,10 @@ func (a App) cmdWatchDelete(g globalFlags, args []string) error {
 	ws.Watches = filtered
 	if err := store.Save(ws); err != nil {
 		return wrapExitError(ExitGenericFailure, err)
+	}
+	if g.Plain && !g.JSON {
+		fmt.Printf("deleted_id=%s\n", *id)
+		return nil
 	}
 	return writeMaybeJSON(g, map[string]any{"deleted": *id})
 }
@@ -295,6 +314,11 @@ func (a App) sendWatchNotifications(n notify.Notifier, w model.Watch, alert mode
 	if w.NotifyEmail {
 		if err := n.SendEmail(w.EmailTo, alert); err != nil {
 			notifyErrs = append(notifyErrs, fmt.Sprintf("watch %s email failed: %v", w.ID, err))
+		}
+	}
+	if w.NotifyWebhook {
+		if err := n.SendWebhook(w.WebhookURL, alert); err != nil {
+			notifyErrs = append(notifyErrs, fmt.Sprintf("watch %s webhook failed: %v", w.ID, err))
 		}
 	}
 	if len(notifyErrs) > 0 {

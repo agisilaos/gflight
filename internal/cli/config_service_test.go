@@ -55,3 +55,18 @@ func TestConfigSetProviderReliabilityKeys(t *testing.T) {
 		t.Fatalf("unexpected reliability config values: %+v", cfg)
 	}
 }
+
+func TestConfigSetWebhookURL(t *testing.T) {
+	cfg := config.Config{}
+	url := "https://example.com/hook"
+	if err := configSet(&cfg, "webhook_url", url); err != nil {
+		t.Fatalf("set webhook_url: %v", err)
+	}
+	if cfg.WebhookURL != url {
+		t.Fatalf("expected webhook url %q, got %q", url, cfg.WebhookURL)
+	}
+	v, ok := configGet(cfg, "webhook_url")
+	if !ok || v != url {
+		t.Fatalf("expected webhook_url from configGet, got ok=%t v=%q", ok, v)
+	}
+}
