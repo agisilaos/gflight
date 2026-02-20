@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/agisilaos/gflight/internal/config"
 	"github.com/agisilaos/gflight/internal/model"
@@ -37,12 +38,28 @@ func validateQuery(q model.SearchQuery) error {
 	return nil
 }
 
-func (a App) resolveProvider(cfg config.Config) provider.Provider {
+func (a App) resolveProvider(cfg config.Config, g globalFlags) (provider.Provider, error) {
+	timeout := time.Duration(cfg.ProviderTimeoutSec) * time.Second
+	if g.Timeout != "" {
+		parsed, err := time.ParseDuration(g.Timeout)
+		if err != nil || parsed <= 0 {
+			return nil, newExitError(ExitInvalidUsage, "invalid --timeout value %q (use duration like 10s)", g.Timeout)
+		}
+		timeout = parsed
+	}
+	backoff := time.Duration(cfg.ProviderBackoffMS) * time.Millisecond
+
 	switch strings.ToLower(cfg.Provider) {
 	case "google-url", "google":
-		return provider.GoogleURLProvider{}
+		return provider.GoogleURLProvider{}, nil
 	default:
-		return provider.SerpAPIProvider{APIKey: cfg.SerpAPIKey}
+		return provider.SerpAPIProvider{
+			APIKey:  cfg.SerpAPIKey,
+			Timeout: timeout,
+			Retries: cfg.ProviderRetries,
+			Backoff: backoff,
+			BaseURL: "https://serpapi.com",
+		}, nil
 	}
 }
 
@@ -58,7 +75,11 @@ func (a App) cmdSearch(g globalFlags, args []string) error {
 	if err != nil {
 		return wrapExitError(ExitGenericFailure, err)
 	}
-	res, err := a.resolveProvider(cfg).Search(*q)
+	p, err := a.resolveProvider(cfg, g)
+	if err != nil {
+		return err
+	}
+	res, err := p.Search(*q)
 	if err != nil {
 		if errors.Is(err, provider.ErrAuthRequired) {
 			return wrapExitError(ExitAuthRequired, err)

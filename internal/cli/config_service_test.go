@@ -39,3 +39,19 @@ func TestConfigGetMasksSerpKey(t *testing.T) {
 		t.Fatalf("expected masked key, got %q", v)
 	}
 }
+
+func TestConfigSetProviderReliabilityKeys(t *testing.T) {
+	cfg := config.Config{}
+	if err := configSet(&cfg, "provider_timeout_seconds", "15"); err != nil {
+		t.Fatalf("set timeout: %v", err)
+	}
+	if err := configSet(&cfg, "provider_retries", "3"); err != nil {
+		t.Fatalf("set retries: %v", err)
+	}
+	if err := configSet(&cfg, "provider_backoff_ms", "250"); err != nil {
+		t.Fatalf("set backoff: %v", err)
+	}
+	if cfg.ProviderTimeoutSec != 15 || cfg.ProviderRetries != 3 || cfg.ProviderBackoffMS != 250 {
+		t.Fatalf("unexpected reliability config values: %+v", cfg)
+	}
+}

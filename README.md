@@ -56,6 +56,7 @@ gflight watch run --all --once
 - `stdout` carries primary output; `stderr` carries diagnostics.
 - `--no-input` avoids prompts.
 - `--plain` emits stable line-based output for shell pipelines.
+- `--timeout` overrides provider request timeout per command (`search`, `watch run`).
 - Query objects in JSON now use normalized `snake_case` keys (for example `query.from`, `query.depart`, `query.sort_by`).
 
 ## Exit Codes
@@ -77,12 +78,21 @@ Supported config keys:
 
 - `provider` (`serpapi` or `google-url`)
 - `serp_api_key`
+- `provider_timeout_seconds`
+- `provider_retries`
+- `provider_backoff_ms`
 - `smtp_host`
 - `smtp_port`
 - `smtp_user`
 - `smtp_pass`
 - `smtp_sender`
 - `notify_email`
+
+Related environment variables:
+
+- `GFLIGHT_PROVIDER_TIMEOUT_SECONDS`
+- `GFLIGHT_PROVIDER_RETRIES`
+- `GFLIGHT_PROVIDER_BACKOFF_MS`
 
 ## Architecture
 

@@ -17,6 +17,7 @@ type globalFlags struct {
 	NoInput  bool
 	NoColor  bool
 	StateDir string
+	Timeout  string
 	Help     bool
 	Version  bool
 }
@@ -90,6 +91,7 @@ GLOBAL FLAGS:
   -q, --quiet        Suppress non-essential text
   -v, --verbose      Extra diagnostics to stderr
   --no-input         Disable prompts
+  --timeout DUR      Provider timeout override (e.g. 10s)
   --state-dir PATH   Override state directory
   --version          Print version
   -h, --help         Show help
@@ -130,6 +132,12 @@ func parseGlobal(args []string) (globalFlags, []string, error) {
 				return g, nil, newExitError(ExitInvalidUsage, "--state-dir requires a value")
 			}
 			g.StateDir = args[1]
+			args = args[2:]
+		case "--timeout":
+			if len(args) < 2 {
+				return g, nil, newExitError(ExitInvalidUsage, "--timeout requires a value like 10s")
+			}
+			g.Timeout = args[1]
 			args = args[2:]
 		default:
 			if strings.HasPrefix(a, "-") {

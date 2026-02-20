@@ -230,7 +230,10 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	if err != nil {
 		return wrapExitError(ExitGenericFailure, err)
 	}
-	p := a.resolveProvider(cfg)
+	p, err := a.resolveProvider(cfg, g)
+	if err != nil {
+		return err
+	}
 	n := notify.Notifier{Config: cfg}
 	report, notifyErrs := runWatchPass(
 		ws.Watches,

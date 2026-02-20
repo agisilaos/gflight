@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/agisilaos/gflight/internal/config"
 )
@@ -23,6 +24,12 @@ func configGet(cfg config.Config, key string) (string, bool) {
 		return cfg.SMTPSender, true
 	case "notify_email":
 		return cfg.DefaultNotifyEmail, true
+	case "provider_timeout_seconds":
+		return strconv.Itoa(cfg.ProviderTimeoutSec), true
+	case "provider_retries":
+		return strconv.Itoa(cfg.ProviderRetries), true
+	case "provider_backoff_ms":
+		return strconv.Itoa(cfg.ProviderBackoffMS), true
 	default:
 		return "", false
 	}
@@ -55,6 +62,24 @@ func configSet(cfg *config.Config, key, value string) error {
 		cfg.SMTPSender = value
 	case "notify_email":
 		cfg.DefaultNotifyEmail = value
+	case "provider_timeout_seconds":
+		n, err := strconv.Atoi(value)
+		if err != nil || n <= 0 {
+			return fmt.Errorf("provider_timeout_seconds must be positive integer")
+		}
+		cfg.ProviderTimeoutSec = n
+	case "provider_retries":
+		n, err := strconv.Atoi(value)
+		if err != nil || n < 0 {
+			return fmt.Errorf("provider_retries must be integer >= 0")
+		}
+		cfg.ProviderRetries = n
+	case "provider_backoff_ms":
+		n, err := strconv.Atoi(value)
+		if err != nil || n <= 0 {
+			return fmt.Errorf("provider_backoff_ms must be positive integer")
+		}
+		cfg.ProviderBackoffMS = n
 	default:
 		return fmt.Errorf("unknown key %q", key)
 	}
