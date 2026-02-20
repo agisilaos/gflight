@@ -82,6 +82,42 @@ func TestValidateQuery(t *testing.T) {
 	}
 }
 
+func TestParseGlobalFlagsAnywhere(t *testing.T) {
+	g, rest, err := parseGlobal([]string{"auth", "status", "--json", "--timeout", "5s"})
+	if err != nil {
+		t.Fatalf("parseGlobal returned error: %v", err)
+	}
+	if !g.JSON {
+		t.Fatalf("expected json global flag to be parsed")
+	}
+	if g.Timeout != "5s" {
+		t.Fatalf("expected timeout=5s, got %q", g.Timeout)
+	}
+	if len(rest) != 2 || rest[0] != "auth" || rest[1] != "status" {
+		t.Fatalf("unexpected rest args: %#v", rest)
+	}
+}
+
+func TestParseGlobalUnknownFlagFallsThroughToSubcommand(t *testing.T) {
+	_, rest, err := parseGlobal([]string{"search", "--from", "SFO"})
+	if err != nil {
+		t.Fatalf("parseGlobal should not fail on subcommand flags: %v", err)
+	}
+	if len(rest) != 3 {
+		t.Fatalf("expected subcommand args preserved, got %#v", rest)
+	}
+}
+
+func TestRunGlobalFlagAfterSubcommand(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	app := NewApp("test")
+	err := app.Run([]string{"auth", "status", "--json"})
+	if err != nil {
+		t.Fatalf("expected no error for trailing global flag, got: %v", err)
+	}
+}
+
 func onlyWatchID(t *testing.T, stateDir string) string {
 	t.Helper()
 	w := onlyWatch(t, stateDir)

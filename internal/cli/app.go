@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"strings"
 )
 
 type App struct {
@@ -100,51 +99,41 @@ GLOBAL FLAGS:
 
 func parseGlobal(args []string) (globalFlags, []string, error) {
 	var g globalFlags
-	for len(args) > 0 {
-		a := args[0]
+	rest := make([]string, 0, len(args))
+	for i := 0; i < len(args); i++ {
+		a := args[i]
 		switch a {
 		case "-h", "--help":
 			g.Help = true
-			args = args[1:]
 		case "--version":
 			g.Version = true
-			args = args[1:]
 		case "--json":
 			g.JSON = true
-			args = args[1:]
 		case "--plain":
 			g.Plain = true
-			args = args[1:]
 		case "-q", "--quiet":
 			g.Quiet = true
-			args = args[1:]
 		case "-v", "--verbose":
 			g.Verbose = true
-			args = args[1:]
 		case "--no-input":
 			g.NoInput = true
-			args = args[1:]
 		case "--no-color":
 			g.NoColor = true
-			args = args[1:]
 		case "--state-dir":
-			if len(args) < 2 {
+			if i+1 >= len(args) {
 				return g, nil, newExitError(ExitInvalidUsage, "--state-dir requires a value")
 			}
-			g.StateDir = args[1]
-			args = args[2:]
+			i++
+			g.StateDir = args[i]
 		case "--timeout":
-			if len(args) < 2 {
+			if i+1 >= len(args) {
 				return g, nil, newExitError(ExitInvalidUsage, "--timeout requires a value like 10s")
 			}
-			g.Timeout = args[1]
-			args = args[2:]
+			i++
+			g.Timeout = args[i]
 		default:
-			if strings.HasPrefix(a, "-") {
-				return g, nil, newExitError(ExitInvalidUsage, "unknown global flag %q", a)
-			}
-			return g, args, nil
+			rest = append(rest, a)
 		}
 	}
-	return g, args, nil
+	return g, rest, nil
 }
