@@ -3,10 +3,13 @@ package notify
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/smtp"
+	neturl "net/url"
 	"os"
 	"strings"
 	"time"
@@ -58,6 +61,10 @@ func (n Notifier) SendEmail(to string, alert model.Alert) error {
 }
 
 func (n Notifier) SendWebhook(url string, alert model.Alert) error {
+	return n.sendWebhookWithClient(url, alert, &http.Client{Timeout: 10 * time.Second})
+}
+
+func (n Notifier) sendWebhookWithClient(url string, alert model.Alert, client *http.Client) error {
 	if strings.TrimSpace(url) == "" {
 		return fmt.Errorf("missing webhook url")
 	}
@@ -71,15 +78,46 @@ func (n Notifier) SendWebhook(url string, alert model.Alert) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %v", classifyWebhookRequestError(err), err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-		return fmt.Errorf("webhook request failed: %s: %s", resp.Status, strings.TrimSpace(string(body)))
+		msg := strings.TrimSpace(string(body))
+		switch {
+		case resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden:
+			return fmt.Errorf("webhook authorization failed: %s: %s", resp.Status, msg)
+		case resp.StatusCode == http.StatusTooManyRequests:
+			return fmt.Errorf("webhook endpoint rate limited: %s: %s", resp.Status, msg)
+		case resp.StatusCode >= 500:
+			return fmt.Errorf("webhook endpoint server error: %s: %s", resp.Status, msg)
+		default:
+			return fmt.Errorf("webhook request failed: %s: %s", resp.Status, msg)
+		}
 	}
 	return nil
+}
+
+func classifyWebhookRequestError(err error) string {
+	var urlErr *neturl.Error
+	if errors.As(err, &urlErr) {
+		if urlErr.Timeout() {
+			return "webhook timeout (check endpoint latency or network)"
+		}
+		err = urlErr.Err
+	}
+
+	var dnsErr *net.DNSError
+	if errors.As(err, &dnsErr) {
+		return "webhook dns lookup failed (verify webhook_url host)"
+	}
+
+	var netErr net.Error
+	if errors.As(err, &netErr) {
+		return "webhook network error (check connectivity to endpoint)"
+	}
+
+	return "webhook request transport error"
 }

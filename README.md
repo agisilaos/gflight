@@ -118,6 +118,13 @@ gflight notify test --channel email --to you@example.com
 gflight notify test --channel webhook --url https://example.com/hook
 ```
 
+Webhook error hints:
+
+- DNS issues are reported as `webhook dns lookup failed`.
+- Timeouts are reported as `webhook timeout`.
+- HTTP `429` is reported as `webhook endpoint rate limited`.
+- HTTP `5xx` is reported as `webhook endpoint server error`.
+
 ## Architecture
 
 - `internal/cli`: command handlers and CLI-facing validation/output.
