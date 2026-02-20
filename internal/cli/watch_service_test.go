@@ -113,3 +113,45 @@ func TestRunWatchPassVerboseProviderErrors(t *testing.T) {
 		t.Fatalf("expected verbose error output, got: %s", buf.String())
 	}
 }
+
+func TestShouldReturnProviderFailure(t *testing.T) {
+	cases := []struct {
+		name   string
+		report watchRunReport
+		strict bool
+		want   bool
+	}{
+		{
+			name:   "none evaluated",
+			report: watchRunReport{Evaluated: 0, ProviderFailures: 0},
+			strict: false,
+			want:   false,
+		},
+		{
+			name:   "all failed default mode",
+			report: watchRunReport{Evaluated: 3, ProviderFailures: 3},
+			strict: false,
+			want:   true,
+		},
+		{
+			name:   "partial failed default mode",
+			report: watchRunReport{Evaluated: 3, ProviderFailures: 1},
+			strict: false,
+			want:   false,
+		},
+		{
+			name:   "partial failed strict mode",
+			report: watchRunReport{Evaluated: 3, ProviderFailures: 1},
+			strict: true,
+			want:   true,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := shouldReturnProviderFailure(tc.report, tc.strict)
+			if got != tc.want {
+				t.Fatalf("shouldReturnProviderFailure() = %t, want %t", got, tc.want)
+			}
+		})
+	}
+}

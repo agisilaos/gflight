@@ -213,11 +213,15 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	fs.SetOutput(os.Stderr)
 	watchID := fs.String("id", "", "Watch ID")
 	runAll := fs.Bool("all", false, "Run all watches")
+	failOnProviderErrors := fs.Bool("fail-on-provider-errors", false, "Exit non-zero when any provider failure occurs")
 	once := fs.Bool("once", true, "Single pass")
 	if err := fs.Parse(args); err != nil {
 		return newExitError(ExitInvalidUsage, "%v", err)
 	}
 	_ = once
+	if (*watchID == "" && !*runAll) || (*watchID != "" && *runAll) {
+		return newExitError(ExitInvalidUsage, "watch run requires exactly one of --all or --id")
+	}
 	store, err := a.watcherStore(g.StateDir)
 	if err != nil {
 		return wrapExitError(ExitGenericFailure, err)
@@ -264,6 +268,12 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	}
 	if len(notifyErrs) > 0 {
 		return newExitError(ExitNotifyFailure, "%s", strings.Join(notifyErrs, "; "))
+	}
+	if shouldReturnProviderFailure(report, *failOnProviderErrors) {
+		if *failOnProviderErrors && report.ProviderFailures > 0 {
+			return newExitError(ExitProviderFailure, "provider failures occurred (%d/%d)", report.ProviderFailures, report.Evaluated)
+		}
+		return newExitError(ExitProviderFailure, "all provider requests failed (%d/%d)", report.ProviderFailures, report.Evaluated)
 	}
 	if report.Triggered == 0 {
 		if !g.JSON {

@@ -118,6 +118,37 @@ func TestRunGlobalFlagAfterSubcommand(t *testing.T) {
 	}
 }
 
+func TestWatchRunRequiresExactlyOneSelector(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	stateDir := t.TempDir()
+	app := NewApp("test")
+
+	err := app.Run([]string{"--state-dir", stateDir, "watch", "run"})
+	if ExitCode(err) != ExitInvalidUsage {
+		t.Fatalf("expected invalid usage for missing selector, got err=%v code=%d", err, ExitCode(err))
+	}
+
+	err = app.Run([]string{"--state-dir", stateDir, "watch", "run", "--all", "--id", "w_1"})
+	if ExitCode(err) != ExitInvalidUsage {
+		t.Fatalf("expected invalid usage for dual selectors, got err=%v code=%d", err, ExitCode(err))
+	}
+}
+
+func TestWatchRunReturnsProviderFailureWhenAllEvaluatedFail(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	stateDir := t.TempDir()
+	app := NewApp("test")
+
+	if err := app.Run([]string{"--state-dir", stateDir, "watch", "create", "--name", "athens", "--from", "SFO", "--to", "ATH", "--depart", "2026-06-10"}); err != nil {
+		t.Fatalf("create watch: %v", err)
+	}
+
+	err := app.Run([]string{"--state-dir", stateDir, "watch", "run", "--all", "--once"})
+	if ExitCode(err) != ExitProviderFailure {
+		t.Fatalf("expected provider failure exit code, got err=%v code=%d", err, ExitCode(err))
+	}
+}
+
 func onlyWatchID(t *testing.T, stateDir string) string {
 	t.Helper()
 	w := onlyWatch(t, stateDir)

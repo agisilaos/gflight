@@ -107,3 +107,13 @@ func evaluateWatchResult(w *model.Watch, res model.SearchResult, now time.Time) 
 		URL:         res.URL,
 	}, true
 }
+
+func shouldReturnProviderFailure(report watchRunReport, strict bool) bool {
+	if report.Evaluated == 0 {
+		return false
+	}
+	if strict && report.ProviderFailures > 0 {
+		return true
+	}
+	return report.ProviderFailures == report.Evaluated
+}
