@@ -43,25 +43,25 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 	case "email":
 		recipient := *to
 		if err := validateNotifyEmailRuntime(cfg, recipient); err != nil {
-			return wrapExitError(ExitNotifyFailure, err)
+			return wrapNotifyError(err)
 		}
 		if recipient == "" {
 			recipient = cfg.DefaultNotifyEmail
 		}
 		if err := n.SendEmail(recipient, alert); err != nil {
-			return wrapExitError(ExitNotifyFailure, err)
+			return wrapNotifyError(err)
 		}
 		return writeMaybeJSON(g, map[string]any{"ok": true, "channel": "email", "to": recipient})
 	case "webhook":
 		webhookURL := *url
 		if err := validateNotifyWebhookRuntime(cfg, webhookURL); err != nil {
-			return wrapExitError(ExitNotifyFailure, err)
+			return wrapNotifyError(err)
 		}
 		if webhookURL == "" {
 			webhookURL = cfg.WebhookURL
 		}
 		if err := n.SendWebhook(webhookURL, alert); err != nil {
-			return wrapExitError(ExitNotifyFailure, err)
+			return wrapNotifyError(err)
 		}
 		return writeMaybeJSON(g, map[string]any{"ok": true, "channel": "webhook", "url": webhookURL})
 	default:

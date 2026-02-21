@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -76,10 +75,7 @@ func (a App) cmdSearch(g globalFlags, args []string) error {
 		return wrapExitError(ExitGenericFailure, err)
 	}
 	if err := validateProviderRuntime(cfg); err != nil {
-		if errors.Is(err, errProviderAuthMissing) {
-			return wrapExitError(ExitAuthRequired, err)
-		}
-		return newExitError(ExitInvalidUsage, "%v", err)
+		return wrapValidationError(err)
 	}
 	p, err := a.resolveProvider(cfg, g)
 	if err != nil {
@@ -87,10 +83,7 @@ func (a App) cmdSearch(g globalFlags, args []string) error {
 	}
 	res, err := p.Search(*q)
 	if err != nil {
-		if errors.Is(err, provider.ErrAuthRequired) {
-			return wrapExitError(ExitAuthRequired, err)
-		}
-		return wrapExitError(ExitProviderFailure, err)
+		return wrapProviderError(err)
 	}
 	if g.JSON {
 		return writeJSON(res)

@@ -3,6 +3,8 @@ package cli
 import (
 	"errors"
 	"fmt"
+
+	"github.com/agisilaos/gflight/internal/provider"
 )
 
 const (
@@ -58,4 +60,34 @@ func ExitCode(err error) int {
 		return ex.Code
 	}
 	return ExitGenericFailure
+}
+
+func wrapProviderError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, provider.ErrAuthRequired) || errors.Is(err, errProviderAuthMissing) {
+		return wrapExitError(ExitAuthRequired, err)
+	}
+	if errors.Is(err, provider.ErrRateLimited) || errors.Is(err, provider.ErrTransient) {
+		return wrapExitError(ExitProviderFailure, err)
+	}
+	return wrapExitError(ExitProviderFailure, err)
+}
+
+func wrapValidationError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, errProviderAuthMissing) {
+		return wrapExitError(ExitAuthRequired, err)
+	}
+	return newExitError(ExitInvalidUsage, "%v", err)
+}
+
+func wrapNotifyError(err error) error {
+	if err == nil {
+		return nil
+	}
+	return wrapExitError(ExitNotifyFailure, err)
 }
