@@ -45,6 +45,27 @@ func TestSendWatchNotificationsReturnsWebhookError(t *testing.T) {
 	}
 }
 
+func TestSendWatchNotificationsDispatchesAllChannels(t *testing.T) {
+	app := NewApp("test")
+	fd := &fakeDispatcher{}
+	w := model.Watch{
+		ID:             "w_3",
+		NotifyTerminal: true,
+		NotifyEmail:    true,
+		NotifyWebhook:  true,
+		EmailTo:        "a@example.com",
+		WebhookURL:     "https://example.com/hook",
+	}
+	alert := model.Alert{WatchID: "w_3", WatchName: "test", TriggeredAt: time.Now().UTC()}
+
+	if err := app.sendWatchNotifications(fd, w, alert); err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if fd.terminalCount != 1 || fd.emailCount != 1 || fd.webhookCount != 1 {
+		t.Fatalf("unexpected dispatch counts: %+v", fd)
+	}
+}
+
 func TestWatchTestJSONKeepsStdoutClean(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
 	stateDir := t.TempDir()
@@ -111,4 +132,24 @@ func captureStdoutStderr(t *testing.T, fn func() error) (string, string, error) 
 	_ = rErr.Close()
 
 	return string(bOut), string(bErr), runErr
+}
+
+type fakeDispatcher struct {
+	terminalCount int
+	emailCount    int
+	webhookCount  int
+}
+
+func (f *fakeDispatcher) SendTerminal(alert model.Alert) {
+	f.terminalCount++
+}
+
+func (f *fakeDispatcher) SendEmail(to string, alert model.Alert) error {
+	f.emailCount++
+	return nil
+}
+
+func (f *fakeDispatcher) SendWebhook(url string, alert model.Alert) error {
+	f.webhookCount++
+	return nil
 }

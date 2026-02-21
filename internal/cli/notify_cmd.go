@@ -26,7 +26,7 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 	if err != nil {
 		return wrapExitError(ExitGenericFailure, err)
 	}
-	n := notify.Notifier{Config: cfg}
+	n := newDefaultNotifyDispatcher(notify.Notifier{Config: cfg})
 	alert := model.Alert{
 		WatchID:     "test",
 		WatchName:   "test-notification",

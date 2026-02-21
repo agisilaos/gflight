@@ -273,7 +273,7 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	if err != nil {
 		return err
 	}
-	n := notify.Notifier{Config: cfg}
+	n := newDefaultNotifyDispatcher(notify.Notifier{Config: cfg})
 	report, notifyErrs := runWatchPass(
 		ws.Watches,
 		*watchID,
@@ -322,7 +322,7 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	return nil
 }
 
-func (a App) sendWatchNotifications(n notify.Notifier, w model.Watch, alert model.Alert) error {
+func (a App) sendWatchNotifications(n notifyDispatcher, w model.Watch, alert model.Alert) error {
 	notifyErrs := make([]string, 0)
 	if w.NotifyTerminal {
 		n.SendTerminal(alert)
@@ -375,7 +375,7 @@ func (a App) cmdWatchTest(g globalFlags, args []string) error {
 			URL:         "https://www.google.com/travel/flights",
 		}
 		cfg, _ := config.Load()
-		n := notify.Notifier{Config: cfg}
+		n := newDefaultNotifyDispatcher(notify.Notifier{Config: cfg})
 		if err := a.sendWatchNotifications(n, w, alert); err != nil {
 			return newExitError(ExitNotifyFailure, "%v", err)
 		}
