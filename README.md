@@ -73,6 +73,8 @@ gflight doctor --strict
 - `doctor --json` provides preflight checks for provider auth, writable paths, and notification config.
 - `doctor --strict` treats warnings as failures (CI/agent preflight mode).
 - Query objects in JSON now use normalized `snake_case` keys (for example `query.from`, `query.depart`, `query.sort_by`).
+- `gflight help <command>` provides command-specific help (for example `gflight help watch run`, `gflight help doctor`).
+- Errors now include actionable `next:` hints on `stderr` when a known remediation exists.
 
 ## Exit Codes
 

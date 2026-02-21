@@ -214,6 +214,38 @@ func TestWatchListPlainUsesStableSchema(t *testing.T) {
 	}
 }
 
+func TestHelpWatchRunShowsCommandSpecificHelp(t *testing.T) {
+	app := NewApp("test")
+	out, err := captureStdoutForRun(t, func() error {
+		return app.Run([]string{"help", "watch", "run"})
+	})
+	if err != nil {
+		t.Fatalf("help watch run failed: %v", err)
+	}
+	if !strings.Contains(out, "gflight watch run - Execute saved watch checks") {
+		t.Fatalf("expected command-specific watch run help, got: %q", out)
+	}
+	if !strings.Contains(out, "--fail-on-provider-errors") {
+		t.Fatalf("expected watch run flags in help, got: %q", out)
+	}
+}
+
+func TestGlobalHelpRoutesToCommandSpecificHelp(t *testing.T) {
+	app := NewApp("test")
+	out, err := captureStdoutForRun(t, func() error {
+		return app.Run([]string{"--help", "doctor"})
+	})
+	if err != nil {
+		t.Fatalf("--help doctor failed: %v", err)
+	}
+	if !strings.Contains(out, "gflight doctor - Run preflight checks for automation readiness") {
+		t.Fatalf("expected command-specific doctor help, got: %q", out)
+	}
+	if !strings.Contains(out, "gflight doctor [--strict]") {
+		t.Fatalf("expected doctor usage in help, got: %q", out)
+	}
+}
+
 func captureStdoutForRun(t *testing.T, fn func() error) (string, error) {
 	t.Helper()
 	oldOut := os.Stdout

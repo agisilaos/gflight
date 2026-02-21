@@ -31,7 +31,7 @@ func (a App) Run(args []string) error {
 		return err
 	}
 	if g.Help {
-		return a.help(nil)
+		return a.help(rest)
 	}
 	if g.Version {
 		fmt.Println(a.Version)
@@ -45,7 +45,7 @@ func (a App) Run(args []string) error {
 
 	switch cmd {
 	case "help", "-h", "--help":
-		return a.help(nil)
+		return a.help(argv)
 	case "--version", "version":
 		fmt.Println(a.Version)
 		return nil
