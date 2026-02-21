@@ -136,6 +136,7 @@ Webhook error hints:
 - `internal/cli/config_service.go`: config key get/set mutation/validation helpers.
 - `internal/cli/config_validate.go`: shared runtime/docter config readiness validation.
 - `internal/cli/notify_dispatcher.go`: notification abstraction boundary used by CLI orchestration.
+- `internal/cli/cli_integration_test.go`: table-driven CLI integration harness for agent flows.
 - `internal/provider`: flight data providers (`serpapi`, `google-url`).
 - `internal/notify`: terminal and SMTP notification delivery.
 - `internal/watcher`: watch persistence store.
