@@ -18,6 +18,8 @@ func helpText(args []string) string {
 	switch k {
 	case "watch", "watch run":
 		return watchRunHelpText()
+	case "completion":
+		return completionHelpText()
 	case "doctor":
 		return doctorHelpText()
 	default:
@@ -57,5 +59,18 @@ CHECKS:
 BEHAVIOR:
   - default: warnings do not fail command
   - --strict: warnings are treated as failures
+`
+}
+
+func completionHelpText() string {
+	return `gflight completion - Generate shell completion script
+
+USAGE:
+  gflight completion <bash|zsh|fish>
+
+EXAMPLES:
+  gflight completion zsh > ~/.zsh/completions/_gflight
+  gflight completion bash > /usr/local/etc/bash_completion.d/gflight
+  gflight completion fish > ~/.config/fish/completions/gflight.fish
 `
 }

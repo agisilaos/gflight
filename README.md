@@ -33,6 +33,7 @@ gflight watch delete --id w_123 --force
 gflight watch run --all --once
 gflight doctor --json
 gflight doctor --strict
+gflight completion zsh > ~/.zsh/completions/_gflight
 ```
 
 ## Watch Commands

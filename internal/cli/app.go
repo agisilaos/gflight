@@ -59,6 +59,8 @@ func (a App) Run(args []string) error {
 		return a.cmdAuth(g, argv)
 	case "config":
 		return a.cmdConfig(g, argv)
+	case "completion":
+		return a.cmdCompletion(g, argv)
 	case "doctor":
 		return a.cmdDoctor(g, argv)
 	default:
@@ -85,6 +87,7 @@ COMMANDS:
   auth login         Store API key interactively
   auth status        Show auth/config status
   config get/set     Read/write config values
+  completion         Generate shell completion script
   doctor             Run automation preflight checks
 
 GLOBAL FLAGS:

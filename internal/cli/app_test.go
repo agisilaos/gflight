@@ -246,6 +246,43 @@ func TestGlobalHelpRoutesToCommandSpecificHelp(t *testing.T) {
 	}
 }
 
+func TestCompletionScripts(t *testing.T) {
+	app := NewApp("test")
+	cases := []struct {
+		shell       string
+		wantSnippet string
+	}{
+		{shell: "bash", wantSnippet: "complete -F _gflight_completions gflight"},
+		{shell: "zsh", wantSnippet: "#compdef gflight"},
+		{shell: "fish", wantSnippet: "complete -c gflight -f"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.shell, func(t *testing.T) {
+			out, err := captureStdoutForRun(t, func() error {
+				return app.Run([]string{"completion", tc.shell})
+			})
+			if err != nil {
+				t.Fatalf("completion failed: %v", err)
+			}
+			if !strings.Contains(out, tc.wantSnippet) {
+				t.Fatalf("expected snippet %q, got: %q", tc.wantSnippet, out)
+			}
+		})
+	}
+}
+
+func TestCompletionUsageErrors(t *testing.T) {
+	app := NewApp("test")
+	err := app.Run([]string{"completion"})
+	if ExitCode(err) != ExitInvalidUsage {
+		t.Fatalf("expected invalid usage for missing shell, got err=%v code=%d", err, ExitCode(err))
+	}
+	err = app.Run([]string{"completion", "pwsh"})
+	if ExitCode(err) != ExitInvalidUsage {
+		t.Fatalf("expected invalid usage for unsupported shell, got err=%v code=%d", err, ExitCode(err))
+	}
+}
+
 func captureStdoutForRun(t *testing.T, fn func() error) (string, error) {
 	t.Helper()
 	oldOut := os.Stdout
