@@ -67,17 +67,8 @@ func runDoctorChecks(cfg config.Config, stateOverride string) doctorReport {
 		checks = append(checks, doctorCheck{Name: name, Status: status, Message: message})
 	}
 
-	switch strings.ToLower(cfg.Provider) {
-	case "serpapi":
-		if cfg.SerpAPIKey == "" {
-			add("provider.auth", "fail", "provider=serpapi but serp_api_key is missing")
-		} else {
-			add("provider.auth", "ok", "serpapi key present")
-		}
-	case "google-url", "google":
-		add("provider.auth", "ok", "provider=google-url does not require API key")
-	default:
-		add("provider.auth", "fail", fmt.Sprintf("unsupported provider %q", cfg.Provider))
+	for _, c := range configReadinessChecks(cfg) {
+		add(c.Name, c.Status, c.Message)
 	}
 
 	if dir, err := config.ConfigDir(); err != nil {
@@ -94,35 +85,6 @@ func runDoctorChecks(cfg config.Config, stateOverride string) doctorReport {
 		add("paths.state", "fail", err.Error())
 	} else {
 		add("paths.state", "ok", dir)
-	}
-
-	if cfg.SMTPHost == "" && cfg.SMTPUsername == "" && cfg.SMTPPassword == "" && cfg.SMTPSender == "" {
-		add("notify.email", "warn", "smtp is not configured")
-	} else {
-		missing := []string{}
-		if cfg.SMTPHost == "" {
-			missing = append(missing, "smtp_host")
-		}
-		if cfg.SMTPUsername == "" {
-			missing = append(missing, "smtp_user")
-		}
-		if cfg.SMTPPassword == "" {
-			missing = append(missing, "smtp_pass")
-		}
-		if cfg.SMTPSender == "" {
-			missing = append(missing, "smtp_sender")
-		}
-		if len(missing) > 0 {
-			add("notify.email", "fail", "missing required smtp fields: "+strings.Join(missing, ", "))
-		} else {
-			add("notify.email", "ok", "smtp configuration complete")
-		}
-	}
-
-	if strings.TrimSpace(cfg.WebhookURL) == "" {
-		add("notify.webhook", "warn", "webhook_url is not configured")
-	} else {
-		add("notify.webhook", "ok", "webhook_url configured")
 	}
 
 	report := doctorReport{Checks: checks}

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -37,6 +38,12 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return wrapExitError(ExitGenericFailure, err)
+	}
+	if err := validateProviderRuntime(cfg); err != nil {
+		if errors.Is(err, errProviderAuthMissing) {
+			return wrapExitError(ExitAuthRequired, err)
+		}
+		return newExitError(ExitInvalidUsage, "%v", err)
 	}
 	p, err := a.resolveProvider(cfg, g)
 	if err != nil {

@@ -136,7 +136,7 @@ func TestWatchRunRequiresExactlyOneSelector(t *testing.T) {
 	}
 }
 
-func TestWatchRunReturnsProviderFailureWhenAllEvaluatedFail(t *testing.T) {
+func TestWatchRunReturnsAuthRequiredWhenProviderCredentialsMissing(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
 	stateDir := t.TempDir()
 	app := NewApp("test")
@@ -146,8 +146,8 @@ func TestWatchRunReturnsProviderFailureWhenAllEvaluatedFail(t *testing.T) {
 	}
 
 	err := app.Run([]string{"--state-dir", stateDir, "watch", "run", "--all", "--once"})
-	if ExitCode(err) != ExitProviderFailure {
-		t.Fatalf("expected provider failure exit code, got err=%v code=%d", err, ExitCode(err))
+	if ExitCode(err) != ExitAuthRequired {
+		t.Fatalf("expected auth required exit code, got err=%v code=%d", err, ExitCode(err))
 	}
 }
 
