@@ -129,6 +129,8 @@ Webhook error hints:
 ## Architecture
 
 - `internal/cli`: command handlers and CLI-facing validation/output.
+- `internal/cli/watch_cmd_mutation.go`: watch create/list/enable/disable/delete command handlers.
+- `internal/cli/watch_cmd_run.go`: watch run/test command handlers.
 - `internal/cli/watch_service.go`: watch evaluation/selection/run logic (pure service helpers, unit-tested).
 - `internal/cli/auth_service.go`: auth status + login mutation/validation helpers.
 - `internal/cli/config_service.go`: config key get/set mutation/validation helpers.
