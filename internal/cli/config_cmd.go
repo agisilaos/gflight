@@ -26,6 +26,10 @@ func (a App) cmdConfig(g globalFlags, args []string) error {
 		if g.JSON {
 			return writeJSON(map[string]string{"key": args[1], "value": val})
 		}
+		if g.Plain {
+			writePlainKV("key", args[1], "value", val)
+			return nil
+		}
 		fmt.Println(val)
 		return nil
 	case "set":
@@ -37,6 +41,10 @@ func (a App) cmdConfig(g globalFlags, args []string) error {
 		}
 		if err := config.Save(cfg); err != nil {
 			return wrapExitError(ExitGenericFailure, err)
+		}
+		if g.Plain && !g.JSON {
+			writePlainKV("ok", "true", "key", args[1])
+			return nil
 		}
 		return writeMaybeJSON(g, map[string]string{"ok": "true", "key": args[1]})
 	default:

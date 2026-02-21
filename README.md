@@ -68,6 +68,7 @@ gflight doctor --strict
 - `stdout` carries primary output; `stderr` carries diagnostics/alerts.
 - `--no-input` avoids prompts.
 - `--plain` emits stable line-based output for shell pipelines.
+  - For mutation commands, plain output uses stable `key=value` fields.
 - `--timeout` overrides provider request timeout per command (`search`, `watch run`).
 - `doctor --json` provides preflight checks for provider auth, writable paths, and notification config.
 - `doctor --strict` treats warnings as failures (CI/agent preflight mode).

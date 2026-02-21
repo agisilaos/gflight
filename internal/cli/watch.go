@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -108,7 +109,7 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 		return wrapExitError(ExitGenericFailure, err)
 	}
 	if g.Plain && !g.JSON {
-		fmt.Printf("watch_id=%s\n", w.ID)
+		writePlainKV("watch_id", w.ID)
 		return nil
 	}
 	return writeMaybeJSON(g, w)
@@ -137,11 +138,19 @@ func (a App) cmdWatchList(g globalFlags, args []string) error {
 		return nil
 	}
 	if g.Plain {
-		fmt.Println("id\tname\tenabled\ttarget_price\tfrom\tto\tdepart")
+		writePlainTableHeader("id", "name", "enabled", "target_price", "from", "to", "depart")
 	}
 	for _, w := range ws.Watches {
 		if g.Plain {
-			fmt.Printf("%s\t%s\t%t\t%d\t%s\t%s\t%s\n", w.ID, w.Name, w.Enabled, w.TargetPrice, w.Query.From, w.Query.To, w.Query.Depart)
+			writePlainTableRow(
+				w.ID,
+				w.Name,
+				strconv.FormatBool(w.Enabled),
+				strconv.Itoa(w.TargetPrice),
+				w.Query.From,
+				w.Query.To,
+				w.Query.Depart,
+			)
 			continue
 		}
 		fmt.Printf("%s\t%s\t%s->%s\t%s\ttarget=%d\tenabled=%t\n", w.ID, w.Name, w.Query.From, w.Query.To, w.Query.Depart, w.TargetPrice, w.Enabled)
@@ -177,7 +186,7 @@ func (a App) cmdWatchSetEnabled(g globalFlags, args []string, enabled bool) erro
 			return wrapExitError(ExitGenericFailure, err)
 		}
 		if g.Plain && !g.JSON {
-			fmt.Printf("watch_id=%s\tenabled=%t\n", ws.Watches[i].ID, ws.Watches[i].Enabled)
+			writePlainKV("watch_id", ws.Watches[i].ID, "enabled", strconv.FormatBool(ws.Watches[i].Enabled))
 			return nil
 		}
 		return writeMaybeJSON(g, ws.Watches[i])
@@ -228,7 +237,7 @@ func (a App) cmdWatchDelete(g globalFlags, args []string) error {
 		return wrapExitError(ExitGenericFailure, err)
 	}
 	if g.Plain && !g.JSON {
-		fmt.Printf("deleted_id=%s\n", *id)
+		writePlainKV("deleted_id", *id)
 		return nil
 	}
 	return writeMaybeJSON(g, map[string]any{"deleted": *id})
