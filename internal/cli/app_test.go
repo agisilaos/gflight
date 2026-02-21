@@ -283,6 +283,35 @@ func TestCompletionUsageErrors(t *testing.T) {
 	}
 }
 
+func TestTypoSuggestions(t *testing.T) {
+	app := NewApp("test")
+	cases := []struct {
+		name    string
+		args    []string
+		wantErr string
+	}{
+		{name: "root", args: []string{"serch"}, wantErr: `did you mean "search"`},
+		{name: "watch", args: []string{"watch", "rn"}, wantErr: `did you mean "run"`},
+		{name: "auth", args: []string{"auth", "statsu"}, wantErr: `did you mean "status"`},
+		{name: "config", args: []string{"config", "gt"}, wantErr: `did you mean "get"`},
+		{name: "notify", args: []string{"notify", "tset"}, wantErr: `did you mean "test"`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := app.Run(tc.args)
+			if err == nil {
+				t.Fatalf("expected error for args: %v", tc.args)
+			}
+			if ExitCode(err) != ExitInvalidUsage {
+				t.Fatalf("expected invalid usage, got %d", ExitCode(err))
+			}
+			if !strings.Contains(err.Error(), tc.wantErr) {
+				t.Fatalf("expected %q in error, got %q", tc.wantErr, err.Error())
+			}
+		})
+	}
+}
+
 func captureStdoutForRun(t *testing.T, fn func() error) (string, error) {
 	t.Helper()
 	oldOut := os.Stdout

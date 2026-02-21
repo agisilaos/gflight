@@ -37,6 +37,9 @@ func (a App) cmdWatch(g globalFlags, args []string) error {
 	case "test":
 		return a.cmdWatchTest(g, argv)
 	default:
+		if s := suggestClosest(sub, []string{"create", "list", "enable", "disable", "delete", "run", "test"}); s != "" {
+			return newExitError(ExitInvalidUsage, "unknown watch subcommand %q (did you mean %q?)", sub, s)
+		}
 		return newExitError(ExitInvalidUsage, "unknown watch subcommand %q", sub)
 	}
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func (a App) cmdConfig(g globalFlags, args []string) error {
-	if len(args) < 2 {
+	if len(args) == 0 {
 		return newExitError(ExitInvalidUsage, "usage: gflight config get <key> | gflight config set <key> <value>")
 	}
 	cfg, err := config.Load()
@@ -48,6 +48,9 @@ func (a App) cmdConfig(g globalFlags, args []string) error {
 		}
 		return writeMaybeJSON(g, map[string]string{"ok": "true", "key": args[1]})
 	default:
+		if s := suggestClosest(args[0], []string{"get", "set"}); s != "" {
+			return newExitError(ExitInvalidUsage, "unknown config action %q (did you mean %q?)", args[0], s)
+		}
 		return newExitError(ExitInvalidUsage, "unknown config action %q", args[0])
 	}
 }

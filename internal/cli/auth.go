@@ -38,6 +38,9 @@ func (a App) cmdAuth(g globalFlags, args []string) error {
 		}
 		return writeMaybeJSON(g, map[string]any{"ok": true, "provider": cfg.Provider})
 	default:
+		if s := suggestClosest(args[0], []string{"login", "status"}); s != "" {
+			return newExitError(ExitInvalidUsage, "unknown auth subcommand %q (did you mean %q?)", args[0], s)
+		}
 		return newExitError(ExitInvalidUsage, "unknown auth subcommand %q", args[0])
 	}
 }

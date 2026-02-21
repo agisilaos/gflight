@@ -12,6 +12,11 @@ import (
 
 func (a App) cmdNotify(g globalFlags, args []string) error {
 	if len(args) == 0 || args[0] != "test" {
+		if len(args) > 0 {
+			if s := suggestClosest(args[0], []string{"test"}); s != "" {
+				return newExitError(ExitInvalidUsage, "unknown notify subcommand %q (did you mean %q?)", args[0], s)
+			}
+		}
 		return newExitError(ExitInvalidUsage, "notify supports only: notify test")
 	}
 	fs := flag.NewFlagSet("notify test", flag.ContinueOnError)

@@ -76,6 +76,7 @@ gflight completion zsh > ~/.zsh/completions/_gflight
 - Query objects in JSON now use normalized `snake_case` keys (for example `query.from`, `query.depart`, `query.sort_by`).
 - `gflight help <command>` provides command-specific help (for example `gflight help watch run`, `gflight help doctor`).
 - Errors now include actionable `next:` hints on `stderr` when a known remediation exists.
+- Unknown commands/subcommands include typo suggestions when a close match exists (for example `did you mean "watch"?`).
 
 ## Exit Codes
 

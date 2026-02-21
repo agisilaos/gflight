@@ -64,7 +64,12 @@ func (a App) Run(args []string) error {
 	case "doctor":
 		return a.cmdDoctor(g, argv)
 	default:
-		return newExitError(ExitInvalidUsage, "unknown command %q\n\n%s", cmd, usageText())
+		msg := "unknown command %q"
+		if s := suggestClosest(cmd, []string{"search", "watch", "notify", "auth", "config", "completion", "doctor", "help", "version"}); s != "" {
+			msg = "unknown command %q (did you mean %q?)"
+			return newExitError(ExitInvalidUsage, msg+"\n\n%s", cmd, s, usageText())
+		}
+		return newExitError(ExitInvalidUsage, msg+"\n\n%s", cmd, usageText())
 	}
 }
 
