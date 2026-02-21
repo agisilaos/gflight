@@ -17,7 +17,17 @@ func (a App) cmdAuth(g globalFlags, args []string) error {
 		if err != nil {
 			return wrapExitError(ExitGenericFailure, err)
 		}
-		return writeMaybeJSON(g, authStatus(cfg))
+		status := authStatus(cfg)
+		if g.Plain && !g.JSON {
+			writePlainKV(
+				"provider", cfg.Provider,
+				"serpapi_key", boolToPlain(status["serpapi_key"]),
+				"smtp_configured", boolToPlain(status["smtp_configured"]),
+				"webhook_configured", boolToPlain(status["webhook_configured"]),
+			)
+			return nil
+		}
+		return writeMaybeJSON(g, status)
 	case "login":
 		cfg, err := config.Load()
 		if err != nil {
@@ -35,6 +45,10 @@ func (a App) cmdAuth(g globalFlags, args []string) error {
 		}
 		if err := config.Save(cfg); err != nil {
 			return wrapExitError(ExitGenericFailure, err)
+		}
+		if g.Plain && !g.JSON {
+			writePlainKV("ok", "true", "provider", cfg.Provider)
+			return nil
 		}
 		return writeMaybeJSON(g, map[string]any{"ok": true, "provider": cfg.Provider})
 	default:

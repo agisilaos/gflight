@@ -20,6 +20,7 @@ gflight auth login --provider serpapi --serpapi-key "$GFLIGHT_SERPAPI_KEY"
 
 ```bash
 gflight search --from SFO --to ATH --depart 2026-06-10 --return 2026-06-24 --json
+gflight --plain search --from SFO --to ATH --depart 2026-06-10
 ```
 
 3. Create a watch and run it:
@@ -56,6 +57,7 @@ gflight completion zsh > ~/.zsh/completions/_gflight
     - default: exits `4` only when all evaluated provider requests fail
     - strict mode: `--fail-on-provider-errors` exits `4` on any provider failure
   - Human mode summary: `evaluated`, `triggered`, `provider_failures`, `notify_failures`.
+  - `--plain` output starts with stable summary `key=value` fields, followed by stable alert lines when alerts trigger.
   - JSON mode returns:
     - `evaluated`
     - `triggered`
@@ -70,6 +72,8 @@ gflight completion zsh > ~/.zsh/completions/_gflight
 - `--no-input` avoids prompts.
 - `--plain` emits stable line-based output for shell pipelines.
   - For mutation commands, plain output uses stable `key=value` fields.
+  - `search --plain` emits stable TSV header/rows plus a trailing `url=<google_flights_url>` line.
+  - `auth status --plain` and `notify test --plain` emit stable `key=value` fields.
 - `--timeout` overrides provider request timeout per command (`search`, `watch run`).
 - `doctor --json` provides preflight checks for provider auth, writable paths, and notification config.
 - `doctor --strict` treats warnings as failures (CI/agent preflight mode).

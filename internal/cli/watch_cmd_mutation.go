@@ -91,7 +91,12 @@ func (a App) cmdWatchList(g globalFlags, args []string) error {
 	if err != nil {
 		return wrapExitError(ExitGenericFailure, err)
 	}
-	sort.Slice(ws.Watches, func(i, j int) bool { return ws.Watches[i].CreatedAt.After(ws.Watches[j].CreatedAt) })
+	sort.Slice(ws.Watches, func(i, j int) bool {
+		if ws.Watches[i].CreatedAt.Equal(ws.Watches[j].CreatedAt) {
+			return ws.Watches[i].ID < ws.Watches[j].ID
+		}
+		return ws.Watches[i].CreatedAt.After(ws.Watches[j].CreatedAt)
+	})
 	if g.JSON {
 		return writeJSON(ws.Watches)
 	}

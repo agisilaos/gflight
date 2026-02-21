@@ -312,6 +312,79 @@ func TestTypoSuggestions(t *testing.T) {
 	}
 }
 
+func TestAuthStatusPlainUsesStableKeyValueOutput(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	app := NewApp("test")
+	out, err := captureStdoutForRun(t, func() error {
+		return app.Run([]string{"--plain", "auth", "status"})
+	})
+	if err != nil {
+		t.Fatalf("auth status plain failed: %v", err)
+	}
+	if !strings.Contains(out, "provider=") || !strings.Contains(out, "serpapi_key=") {
+		t.Fatalf("expected stable key=value output, got: %q", out)
+	}
+}
+
+func TestNotifyTerminalPlainUsesStableKeyValueOutput(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	app := NewApp("test")
+	out, _, err := captureStdoutStderr(t, func() error {
+		return app.Run([]string{"--plain", "notify", "test", "--channel", "terminal"})
+	})
+	if err != nil {
+		t.Fatalf("notify test plain failed: %v", err)
+	}
+	if strings.TrimSpace(out) != "ok=true\tchannel=terminal" {
+		t.Fatalf("unexpected notify plain output: %q", out)
+	}
+}
+
+func TestSearchPlainPrintsHeaderAndURL(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	app := NewApp("test")
+	if err := app.Run([]string{"auth", "login", "--provider", "google-url"}); err != nil {
+		t.Fatalf("auth login: %v", err)
+	}
+	out, err := captureStdoutForRun(t, func() error {
+		return app.Run([]string{"--plain", "search", "--from", "SFO", "--to", "ATH", "--depart", "2026-06-10"})
+	})
+	if err != nil {
+		t.Fatalf("search plain failed: %v", err)
+	}
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(lines) < 2 {
+		t.Fatalf("expected header and url lines, got: %q", out)
+	}
+	if lines[0] != "price\tcurrency\tairline\tdepart_time\tarrive_time\tstops" {
+		t.Fatalf("unexpected search plain header: %q", lines[0])
+	}
+	if !strings.HasPrefix(lines[len(lines)-1], "url=") {
+		t.Fatalf("expected url key=value line, got: %q", lines[len(lines)-1])
+	}
+}
+
+func TestWatchRunPlainPrintsSummaryKeyValues(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	stateDir := t.TempDir()
+	app := NewApp("test")
+	if err := app.Run([]string{"auth", "login", "--provider", "google-url"}); err != nil {
+		t.Fatalf("auth login: %v", err)
+	}
+	if err := app.Run([]string{"--state-dir", stateDir, "watch", "create", "--name", "athens", "--from", "SFO", "--to", "ATH", "--depart", "2026-06-10"}); err != nil {
+		t.Fatalf("create watch: %v", err)
+	}
+	out, err := captureStdoutForRun(t, func() error {
+		return app.Run([]string{"--plain", "--state-dir", stateDir, "watch", "run", "--all", "--once"})
+	})
+	if err != nil {
+		t.Fatalf("watch run plain failed: %v", err)
+	}
+	if !strings.Contains(out, "evaluated=") || !strings.Contains(out, "triggered=") || !strings.Contains(out, "provider_failures=") {
+		t.Fatalf("expected summary key=value output, got: %q", out)
+	}
+}
+
 func captureStdoutForRun(t *testing.T, fn func() error) (string, error) {
 	t.Helper()
 	oldOut := os.Stdout

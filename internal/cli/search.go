@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -89,10 +90,31 @@ func (a App) cmdSearch(g globalFlags, args []string) error {
 		return writeJSON(res)
 	}
 	if g.Plain {
-		for _, f := range res.Flights {
-			fmt.Printf("%d\t%s\t%s\t%s\t%s\n", f.Price, f.Currency, f.Airline, f.DepartTime, f.ArriveTime)
+		flights := append([]model.Flight(nil), res.Flights...)
+		sort.SliceStable(flights, func(i, j int) bool {
+			if flights[i].Price != flights[j].Price {
+				return flights[i].Price < flights[j].Price
+			}
+			if flights[i].DepartTime != flights[j].DepartTime {
+				return flights[i].DepartTime < flights[j].DepartTime
+			}
+			if flights[i].ArriveTime != flights[j].ArriveTime {
+				return flights[i].ArriveTime < flights[j].ArriveTime
+			}
+			return flights[i].Airline < flights[j].Airline
+		})
+		writePlainTableHeader("price", "currency", "airline", "depart_time", "arrive_time", "stops")
+		for _, f := range flights {
+			writePlainTableRow(
+				fmt.Sprintf("%d", f.Price),
+				f.Currency,
+				f.Airline,
+				f.DepartTime,
+				f.ArriveTime,
+				fmt.Sprintf("%d", f.Stops),
+			)
 		}
-		fmt.Println(res.URL)
+		writePlainKV("url", res.URL)
 		return nil
 	}
 	if len(res.Flights) == 0 {

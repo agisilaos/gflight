@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -64,7 +66,35 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 			return wrapExitError(ExitGenericFailure, err)
 		}
 	}
-	if !g.JSON {
+	if g.Plain && !g.JSON {
+		writePlainKV(
+			"evaluated", strconv.Itoa(report.Evaluated),
+			"triggered", strconv.Itoa(report.Triggered),
+			"provider_failures", strconv.Itoa(report.ProviderFailures),
+			"notify_failures", strconv.Itoa(report.NotifyFailures),
+		)
+		alerts := append([]model.Alert(nil), report.Alerts...)
+		sort.SliceStable(alerts, func(i, j int) bool {
+			if alerts[i].WatchID != alerts[j].WatchID {
+				return alerts[i].WatchID < alerts[j].WatchID
+			}
+			if !alerts[i].TriggeredAt.Equal(alerts[j].TriggeredAt) {
+				return alerts[i].TriggeredAt.Before(alerts[j].TriggeredAt)
+			}
+			return alerts[i].LowestPrice < alerts[j].LowestPrice
+		})
+		for _, alert := range alerts {
+			writePlainKV(
+				"alert_watch_id", alert.WatchID,
+				"watch_name", alert.WatchName,
+				"price", strconv.Itoa(alert.LowestPrice),
+				"currency", alert.Currency,
+				"reason", alert.Reason,
+				"url", alert.URL,
+			)
+		}
+	}
+	if !g.JSON && !g.Plain {
 		fmt.Printf(
 			"Watch run summary: evaluated=%d triggered=%d provider_failures=%d notify_failures=%d\n",
 			report.Evaluated,
@@ -83,12 +113,12 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 		return newExitError(ExitProviderFailure, "all provider requests failed (%d/%d)", report.ProviderFailures, report.Evaluated)
 	}
 	if report.Triggered == 0 {
-		if !g.JSON {
+		if !g.JSON && !g.Plain {
 			fmt.Println("No alerts triggered")
 		}
 		return nil
 	}
-	if !g.JSON {
+	if !g.JSON && !g.Plain {
 		fmt.Printf("Triggered %d alert(s)\n", report.Triggered)
 	}
 	return nil

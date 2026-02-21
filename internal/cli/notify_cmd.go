@@ -44,6 +44,10 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 	switch *channel {
 	case "terminal":
 		n.SendTerminal(alert)
+		if g.Plain && !g.JSON {
+			writePlainKV("ok", "true", "channel", "terminal")
+			return nil
+		}
 		return writeMaybeJSON(g, map[string]any{"ok": true, "channel": "terminal"})
 	case "email":
 		recipient := *to
@@ -56,6 +60,10 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 		if err := n.SendEmail(recipient, alert); err != nil {
 			return wrapNotifyError(err)
 		}
+		if g.Plain && !g.JSON {
+			writePlainKV("ok", "true", "channel", "email", "to", recipient)
+			return nil
+		}
 		return writeMaybeJSON(g, map[string]any{"ok": true, "channel": "email", "to": recipient})
 	case "webhook":
 		webhookURL := *url
@@ -67,6 +75,10 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 		}
 		if err := n.SendWebhook(webhookURL, alert); err != nil {
 			return wrapNotifyError(err)
+		}
+		if g.Plain && !g.JSON {
+			writePlainKV("ok", "true", "channel", "webhook", "url", webhookURL)
+			return nil
 		}
 		return writeMaybeJSON(g, map[string]any{"ok": true, "channel": "webhook", "url": webhookURL})
 	default:

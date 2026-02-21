@@ -53,3 +53,14 @@ func firstOr(v, fallback string) string {
 	}
 	return v
 }
+
+func boolToPlain(v any) string {
+	b, ok := v.(bool)
+	if !ok {
+		return "false"
+	}
+	if b {
+		return "true"
+	}
+	return "false"
+}
