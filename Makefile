@@ -1,4 +1,4 @@
-.PHONY: build test docs-check release-check release-dry-run release
+.PHONY: build test docs-check smoke-real-provider release-check release-dry-run release
 
 BINARY := gflight
 
@@ -10,6 +10,9 @@ test:
 
 docs-check:
 	./scripts/docs-check.sh
+
+smoke-real-provider:
+	./scripts/smoke-real-provider.sh
 
 release-check:
 	./scripts/release-check.sh "$(VERSION)"

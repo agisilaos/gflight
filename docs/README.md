@@ -11,6 +11,7 @@
 - Release automation scripts:
   - `scripts/release-check.sh`
   - `scripts/release.sh`
+  - `scripts/smoke-real-provider.sh` (opt-in network smoke)
 
 ## Policy
 

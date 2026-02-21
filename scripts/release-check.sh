@@ -90,4 +90,11 @@ fi
 
 go test ./...
 
+if [[ "${RUN_REAL_PROVIDER_SMOKE:-0}" == "1" ]]; then
+  echo "running opt-in real provider smoke test"
+  make smoke-real-provider
+else
+  echo "skipping real provider smoke test (set RUN_REAL_PROVIDER_SMOKE=1 to enable)"
+fi
+
 echo "release-check passed for $VERSION"

@@ -248,6 +248,25 @@ Release scripts:
 
 - `scripts/release-check.sh`
 - `scripts/release.sh`
+- `scripts/smoke-real-provider.sh` (opt-in real-network smoke)
+
+Optional real-provider smoke during release-check:
+
+```bash
+export RUN_REAL_PROVIDER_SMOKE=1
+export GFLIGHT_SMOKE_REAL=1
+export GFLIGHT_SERPAPI_KEY=...
+export GFLIGHT_FROM=SFO
+export GFLIGHT_TO=ATH
+export GFLIGHT_DEPART=2026-06-10
+make release-check VERSION=vX.Y.Z
+```
+
+Manual run:
+
+```bash
+make smoke-real-provider
+```
 
 ## Docs
 
