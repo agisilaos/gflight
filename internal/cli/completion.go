@@ -2,12 +2,25 @@ package cli
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
 func (a App) cmdCompletion(g globalFlags, args []string) error {
+	if len(args) == 0 {
+		return newExitError(ExitInvalidUsage, "usage: gflight completion <bash|zsh|fish> | gflight completion path <bash|zsh|fish>")
+	}
+	if len(args) == 2 && strings.EqualFold(args[0], "path") {
+		p, err := completionInstallPath(args[1])
+		if err != nil {
+			return err
+		}
+		fmt.Println(p)
+		return nil
+	}
 	if len(args) != 1 {
-		return newExitError(ExitInvalidUsage, "usage: gflight completion <bash|zsh|fish>")
+		return newExitError(ExitInvalidUsage, "usage: gflight completion <bash|zsh|fish> | gflight completion path <bash|zsh|fish>")
 	}
 	switch strings.ToLower(args[0]) {
 	case "bash":
@@ -21,6 +34,23 @@ func (a App) cmdCompletion(g globalFlags, args []string) error {
 		return nil
 	default:
 		return newExitError(ExitInvalidUsage, "unsupported shell %q (use bash, zsh, or fish)", args[0])
+	}
+}
+
+func completionInstallPath(shell string) (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil || home == "" {
+		return "", newExitError(ExitGenericFailure, "cannot resolve user home directory")
+	}
+	switch strings.ToLower(strings.TrimSpace(shell)) {
+	case "zsh":
+		return filepath.Join(home, ".zsh", "completions", "_gflight"), nil
+	case "bash":
+		return filepath.Join(home, ".local", "share", "bash-completion", "completions", "gflight"), nil
+	case "fish":
+		return filepath.Join(home, ".config", "fish", "completions", "gflight.fish"), nil
+	default:
+		return "", newExitError(ExitInvalidUsage, "unsupported shell %q (use bash, zsh, or fish)", shell)
 	}
 }
 

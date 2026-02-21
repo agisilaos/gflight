@@ -281,6 +281,25 @@ func TestCompletionUsageErrors(t *testing.T) {
 	if ExitCode(err) != ExitInvalidUsage {
 		t.Fatalf("expected invalid usage for unsupported shell, got err=%v code=%d", err, ExitCode(err))
 	}
+	err = app.Run([]string{"completion", "path"})
+	if ExitCode(err) != ExitInvalidUsage {
+		t.Fatalf("expected invalid usage for missing path shell, got err=%v code=%d", err, ExitCode(err))
+	}
+}
+
+func TestCompletionPath(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	app := NewApp("test")
+	out, err := captureStdoutForRun(t, func() error {
+		return app.Run([]string{"completion", "path", "zsh"})
+	})
+	if err != nil {
+		t.Fatalf("completion path zsh failed: %v", err)
+	}
+	if strings.TrimSpace(out) != filepath.Join(home, ".zsh", "completions", "_gflight") {
+		t.Fatalf("unexpected zsh path output: %q", out)
+	}
 }
 
 func TestTypoSuggestions(t *testing.T) {

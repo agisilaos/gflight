@@ -67,10 +67,12 @@ func completionHelpText() string {
 
 USAGE:
   gflight completion <bash|zsh|fish>
+  gflight completion path <bash|zsh|fish>
 
 EXAMPLES:
   gflight completion zsh > ~/.zsh/completions/_gflight
   gflight completion bash > /usr/local/etc/bash_completion.d/gflight
   gflight completion fish > ~/.config/fish/completions/gflight.fish
+  gflight completion path zsh
 `
 }

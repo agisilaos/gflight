@@ -35,6 +35,29 @@ gflight watch run --all --once
 gflight doctor --json
 gflight doctor --strict
 gflight completion zsh > ~/.zsh/completions/_gflight
+gflight completion path zsh
+```
+
+Completion install helpers:
+
+```bash
+# zsh
+mkdir -p "$(dirname "$(gflight completion path zsh)")"
+gflight completion zsh > "$(gflight completion path zsh)"
+
+# bash
+mkdir -p "$(dirname "$(gflight completion path bash)")"
+gflight completion bash > "$(gflight completion path bash)"
+
+# fish
+mkdir -p "$(dirname "$(gflight completion path fish)")"
+gflight completion fish > "$(gflight completion path fish)"
+```
+
+Verification:
+
+```bash
+test -s "$(gflight completion path zsh)" && echo "zsh completion installed"
 ```
 
 ## Watch Commands
