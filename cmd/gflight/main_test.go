@@ -31,4 +31,3 @@ func TestRunPrintsHintsForWatchRunSelectorError(t *testing.T) {
 		t.Fatalf("expected watch run hint, got: %q", stderr.String())
 	}
 }
-

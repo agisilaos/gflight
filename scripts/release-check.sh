@@ -1,52 +1,61 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${1:-}"
+cd "$(dirname "$0")/.."
 
-err() {
+die() {
   echo "error: $*" >&2
   exit 1
 }
 
-if [[ -z "$VERSION" ]]; then
-  err "usage: ./scripts/release-check.sh vX.Y.Z"
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  die "release-check.sh must be run on macOS (Darwin)"
 fi
 
-if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  err "invalid VERSION '$VERSION' (expected vX.Y.Z)"
+if [[ $# -ne 1 ]]; then
+  echo "usage: scripts/release-check.sh vX.Y.Z" >&2
+  exit 2
 fi
 
-for cmd in go git python3; do
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    err "required command not found: $cmd"
-  fi
+version="$1"
+if [[ ! "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  die "version must match vX.Y.Z (got: $version)"
+fi
+
+for tool in go git python3; do
+  command -v "$tool" >/dev/null 2>&1 || die "$tool is required"
 done
 
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  err "must run inside a git repository"
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || die "not inside a git work tree"
+git diff --quiet || die "working tree has unstaged changes"
+git diff --cached --quiet || die "index has staged changes"
+
+if git rev-parse "$version" >/dev/null 2>&1; then
+  die "tag already exists: $version"
 fi
 
-if [[ -n "$(git status --porcelain)" ]]; then
-  err "working tree is not clean"
-fi
-
-if [[ ! -f CHANGELOG.md ]]; then
-  err "CHANGELOG.md is missing"
-fi
+[[ -f README.md ]] || die "README.md not found"
+[[ -f CHANGELOG.md ]] || die "CHANGELOG.md not found"
 
 if grep -qE '^## \[Unreleased\]' CHANGELOG.md; then
-  err "CHANGELOG.md must not contain ## [Unreleased]"
+  die "CHANGELOG.md must not contain ## [Unreleased]"
 fi
 
-if ! grep -qE "^## \[$VERSION\]" CHANGELOG.md; then
-  echo "warning: CHANGELOG.md does not contain heading for $VERSION" >&2
+if grep -Fq "## [$version]" CHANGELOG.md; then
+  die "CHANGELOG.md already contains $version"
 fi
 
 # Keep release-check CI portable on stock GitHub runners.
 # Do not require non-default tooling such as rg/jq/yq/fd in checked scripts.
 if grep -R -nE '(^|[[:space:]])(r[g]|j[q]|y[q]|f[d])([[:space:]]|$)' scripts >/dev/null; then
-  err "scripts/ uses non-portable tooling (rg/jq/yq/fd). Use grep/sed/awk or install tools explicitly in workflow."
+  die "scripts/ uses non-portable tooling (rg/jq/yq/fd). Use grep/sed/awk or install tools explicitly in workflow."
 fi
+
+echo "[release-check] running tests"
+go test ./...
+
+echo "[release-check] running vet"
+go vet ./...
 
 echo "[release-check] running docs check"
 ./scripts/docs-check.sh
@@ -90,18 +99,21 @@ else
   rm -f "$before_mod" "$before_sum"
 
   if [[ "$changed" -eq 1 ]]; then
-    err "go.mod/go.sum drift detected; run go mod tidy"
+    die "go.mod/go.sum drift detected; run go mod tidy"
   fi
 fi
 
-echo "[release-check] running tests"
-go test ./...
-
-if [[ "${RUN_REAL_PROVIDER_SMOKE:-0}" == "1" ]]; then
-  echo "running opt-in real provider smoke test"
-  make smoke-real-provider
-else
-  echo "skipping real provider smoke test (set RUN_REAL_PROVIDER_SMOKE=1 to enable)"
+echo "[release-check] checking format"
+if [[ -n "$(gofmt -l cmd internal)" ]]; then
+  die "gofmt reported formatting drift in cmd/ or internal/"
 fi
 
-echo "release-check passed for $VERSION"
+if [[ "${RUN_REAL_PROVIDER_SMOKE:-0}" == "1" ]]; then
+  echo "[release-check] running opt-in real provider smoke test"
+  make smoke-real-provider
+else
+  echo "[release-check] skipping real provider smoke test (set RUN_REAL_PROVIDER_SMOKE=1 to enable)"
+fi
+
+echo "[release-check] ok"
+echo "  version: $version"
