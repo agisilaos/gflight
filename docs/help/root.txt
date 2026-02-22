@@ -1,0 +1,31 @@
+gflight - Search Google Flights and run price alerts
+
+USAGE:
+  gflight [global flags] <command> [args]
+
+COMMANDS:
+  search             One-shot flight search
+  watch create       Create a watch
+  watch list         List watches
+  watch enable       Enable a watch
+  watch disable      Disable a watch
+  watch delete       Delete a watch
+  watch run          Execute watches and emit notifications
+  watch test         Simulate a watch alert
+  notify test        Test notification channels
+  auth login         Store API key interactively
+  auth status        Show auth/config status
+  config get/set     Read/write config values
+  completion         Generate shell completion script
+  doctor             Run automation preflight checks
+
+GLOBAL FLAGS:
+  --json             JSON output
+  --plain            Stable plain output
+  -q, --quiet        Suppress non-essential text
+  -v, --verbose      Extra diagnostics to stderr
+  --no-input         Disable prompts
+  --timeout DUR      Provider timeout override (e.g. 10s)
+  --state-dir PATH   Override state directory
+  --version          Print version
+  -h, --help         Show help

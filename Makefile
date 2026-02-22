@@ -1,4 +1,4 @@
-.PHONY: build test docs-check smoke-real-provider release-check release-dry-run release
+.PHONY: build test check-help docs-check smoke-real-provider release-check release-dry-run release
 
 BINARY := gflight
 
@@ -7,6 +7,9 @@ build:
 
 test:
 	go test ./...
+
+check-help:
+	./scripts/check-help.sh
 
 docs-check:
 	./scripts/docs-check.sh
