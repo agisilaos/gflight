@@ -11,9 +11,12 @@ err() {
 required_files=(
   "README.md"
   "CHANGELOG.md"
+  "RELEASING.md"
   "Makefile"
   "scripts/release-check.sh"
   "scripts/release.sh"
+  "scripts/changelog-context.sh"
+  "scripts/changelog-section.py"
   "scripts/docs-check.sh"
   ".github/workflows/release-check.yml"
 )
@@ -30,7 +33,7 @@ python3 ./scripts/docs-contract-check.py
 echo "[docs-check] checking CLI help snapshots"
 ./scripts/check-help.sh
 
-for target in release-check release-dry-run release; do
+for target in changelog-context release-check release-check-ci release-dry-run release; do
   if ! grep -qE "^${target}:" Makefile; then
     err "Makefile missing target: $target"
   fi

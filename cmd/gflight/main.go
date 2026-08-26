@@ -8,12 +8,19 @@ import (
 	"github.com/agisilaos/gflight/internal/cli"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
 	os.Exit(run(os.Args[1:], os.Stderr))
 }
 
 func run(args []string, stderr io.Writer) int {
-	app := cli.NewApp("dev")
+	buildVersion := fmt.Sprintf("gflight %s (commit %s, built %s)", version, commit, date)
+	app := cli.NewApp(buildVersion)
 	if err := app.Run(args); err != nil {
 		fmt.Fprintln(stderr, err)
 		for _, hint := range cli.ErrorHints(err) {

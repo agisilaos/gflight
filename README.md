@@ -240,15 +240,21 @@ Every 15 minutes:
 
 ## Release
 
-1. `make release-check VERSION=vX.Y.Z`
-2. `make release-dry-run VERSION=vX.Y.Z`
-3. `make release VERSION=vX.Y.Z`
+Ask an agent to prepare the changelog from commit and PR evidence, review and commit it, then run:
+
+1. `make changelog-context VERSION=vX.Y.Z`
+2. `make release-check VERSION=vX.Y.Z`
+3. `make release-dry-run VERSION=vX.Y.Z`
+4. `make release VERSION=vX.Y.Z`
 
 Release scripts:
 
+- `scripts/changelog-context.sh`
 - `scripts/release-check.sh`
 - `scripts/release.sh`
 - `scripts/smoke-real-provider.sh` (opt-in real-network smoke)
+
+Every new changelog bullet links to its pull request or direct commit. The approved changelog section becomes the GitHub Release notes. The dry run builds version-stamped macOS archives and renders the Homebrew formula without remote writes. See `RELEASING.md` for the full runbook.
 
 Optional real-provider smoke during release-check:
 
