@@ -2,6 +2,13 @@
 
 Releases are prepared by an agent, reviewed by a human, and published from a clean macOS checkout of the default branch.
 
+## Local verification
+
+Run `make verify` while developing. It checks the pinned local helper bundle,
+module metadata, formatting, static analysis, tests, documentation and help.
+Module validation leaves `go.mod` and `go.sum` unchanged, including on errors.
+The real-provider smoke remains opt-in through `RUN_REAL_PROVIDER_SMOKE=1`.
+
 ## Prepare the changelog
 
 Ask an agent to prepare `vX.Y.Z`. The agent must start from the repository evidence:
@@ -31,9 +38,11 @@ make release-dry-run VERSION=vX.Y.Z
 make release VERSION=vX.Y.Z
 ```
 
-`release-check` validates the clean worktree, version, changelog, tests, documentation, module metadata, formatting, and version-stamped binary. `release-dry-run` builds both macOS archives and checksums, extracts the approved changelog section as release notes, and renders the Homebrew formula without remote writes.
+`release-check` validates the clean worktree, version and changelog, runs `make verify`, then checks the version-stamped binary. `release-dry-run` builds both macOS archives and checksums, extracts the approved changelog section as release notes, and renders and syntax-checks the Homebrew formula without remote writes. Publication requires the `main` branch and validates the selected existing tap branch before creating a tag.
 
 The final command creates and pushes the tag, publishes the GitHub Release with the approved changelog section, and updates the configured Homebrew tap.
+
+If publication stops, follow [release recovery](docs/release-recovery.md) using the retained original artifacts and reported phase outcomes. Inspect remote state before attempting a missing step.
 
 ## Changelog policy
 

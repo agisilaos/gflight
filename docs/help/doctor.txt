@@ -1,0 +1,13 @@
+gflight doctor - Run preflight checks for automation readiness
+
+USAGE:
+  gflight doctor [--strict] [global flags]
+
+CHECKS:
+  - provider authentication readiness
+  - config/state path writability
+  - email/webhook notification readiness
+
+BEHAVIOR:
+  - default: warnings do not fail command
+  - --strict: warnings are treated as failures

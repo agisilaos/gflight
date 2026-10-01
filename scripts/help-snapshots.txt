@@ -1,2 +1,5 @@
 # output_file<TAB>command args
 root.txt	--help
+watch-run.txt	help watch run
+doctor.txt	help doctor
+completion.txt	help completion
