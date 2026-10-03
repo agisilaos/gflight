@@ -119,7 +119,8 @@ test -s "$(gflight completion path zsh)" && echo "zsh completion installed"
 - `doctor --json` provides preflight checks for provider auth, writable paths, and notification config.
 - `doctor --strict` treats warnings as failures (CI/agent preflight mode).
 - Query objects in JSON now use normalized `snake_case` keys (for example `query.from`, `query.depart`, `query.sort_by`).
-- `gflight help <command>` provides command-specific help (for example `gflight help watch run`, `gflight help doctor`).
+- Focused help is available for `search`, `watch create`, `watch delete`, `watch run`, `doctor`, and `completion`. Use `gflight help search` or `gflight search --help` (also `-h`); help does not require provider credentials or a valid configuration.
+- Search/create/delete help lists required inputs, current flag defaults, examples, and preview/confirmation boundaries. Missing route inputs or a delete ID point directly to the owning help topic.
 - Errors now include actionable `next:` hints on `stderr` when a known remediation exists.
 - Unknown commands/subcommands include typo suggestions when a close match exists (for example `did you mean "watch"?`).
 

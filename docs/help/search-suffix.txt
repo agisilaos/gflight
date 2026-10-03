@@ -1,0 +1,37 @@
+gflight search - Search flight options
+
+USAGE:
+  gflight search [flags] [global flags]
+
+RULES:
+Required: --from, --to, --depart (YYYY-MM-DD).
+Optional --return must be on or after departure. Without it, the trip is one-way.
+Search queries the configured provider; there is no search --dry-run flag.
+Use --json or --plain for automation; see gflight --help for global flags.
+
+FLAGS:
+  -adults int
+    	Number of adults (default 1)
+  -cabin string
+    	Cabin: economy, premium-economy, business, or first (default "economy")
+  -children int
+    	Number of children
+  -currency string
+    	Currency code (default "USD")
+  -depart string
+    	Outbound date YYYY-MM-DD
+  -from string
+    	Departure airport/city code
+  -max-price int
+    	Maximum acceptable price
+  -nonstop
+    	Nonstop only
+  -return string
+    	Return date YYYY-MM-DD
+  -sort string
+    	Sort mode (default "price")
+  -to string
+    	Arrival airport/city code
+
+EXAMPLE:
+  gflight search --from SFO --to ATH --depart 2026-12-01

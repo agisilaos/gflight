@@ -20,7 +20,10 @@
 
 - `make verify` checks module metadata, formatting, vet, tests, docs and help.
 - `make update-help` explicitly refreshes the snapshots; validation never updates them.
-- `scripts/help-snapshots.txt` records four public help topics:
+- `scripts/help-snapshots.txt` records root and focused help, including both topic and suffix spellings for search, watch create and watch delete:
+  - `help search` / `search --help` → `docs/help/search*.txt`
+  - `help watch create` / `watch create --help` → `docs/help/watch-create*.txt`
+  - `help watch delete` / `watch delete --help` → `docs/help/watch-delete*.txt`
   - `--help` → `docs/help/root.txt`
   - `help watch run` → `docs/help/watch-run.txt`
   - `help doctor` → `docs/help/doctor.txt`

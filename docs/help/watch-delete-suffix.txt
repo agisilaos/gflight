@@ -1,0 +1,21 @@
+gflight watch delete - Delete a saved watch
+
+USAGE:
+  gflight watch delete [flags] [global flags]
+
+RULES:
+Required: --id plus either --force or --confirm with the same watch ID.
+There is no interactive prompt or delete --dry-run flag.
+--no-input requires --force even when --confirm matches.
+Find IDs with gflight watch list. See gflight --help for global flags.
+
+FLAGS:
+  -confirm string
+    	Confirmation token (watch ID)
+  -force
+    	Delete without confirmation
+  -id string
+    	Watch ID
+
+EXAMPLE:
+  gflight watch delete --id w_123 --confirm w_123
