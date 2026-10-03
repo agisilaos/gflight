@@ -18,6 +18,11 @@ gflight auth login --provider serpapi --serpapi-key "$GFLIGHT_SERPAPI_KEY"
 
 2. One-shot search:
 
+Searches and watches accept `--cabin economy` (default), `premium-economy`,
+`business`, or `first`; numeric aliases `1`–`4` remain accepted. Invalid cabins
+fail before a request or watch is saved. SerpAPI searches use one-way trips
+unless `--return` is supplied; `--nonstop` requests nonstop results.
+
 ```bash
 gflight search --from SFO --to ATH --depart 2026-06-10 --return 2026-06-24 --json
 gflight --plain search --from SFO --to ATH --depart 2026-06-10
