@@ -24,6 +24,9 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return newExitError(ExitInvalidUsage, "%v", err)
 	}
+	if fs.NArg() != 0 {
+		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
+	}
 	_ = once
 	if (*watchID == "" && !*runAll) || (*watchID != "" && *runAll) {
 		return newExitError(ExitInvalidUsage, "watch run requires exactly one of --all or --id")
@@ -151,6 +154,9 @@ func (a App) cmdWatchTest(g globalFlags, args []string) error {
 	id := fs.String("id", "", "Watch ID")
 	if err := fs.Parse(args); err != nil {
 		return newExitError(ExitInvalidUsage, "%v", err)
+	}
+	if fs.NArg() != 0 {
+		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
 	}
 	if *id == "" {
 		return newExitError(ExitInvalidUsage, "--id is required")

@@ -68,6 +68,9 @@ func (a App) cmdSearch(g globalFlags, args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return newExitError(ExitInvalidUsage, "%v", err)
 	}
+	if fs.NArg() != 0 {
+		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
+	}
 	if err := validateQuery(*q); err != nil {
 		return err
 	}

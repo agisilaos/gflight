@@ -25,6 +25,9 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return newExitError(ExitInvalidUsage, "%v", err)
 	}
+	if fs.NArg() != 0 {
+		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
+	}
 	if err := validateQuery(*q); err != nil {
 		return err
 	}
@@ -83,6 +86,9 @@ func (a App) cmdWatchList(g globalFlags, args []string) error {
 	if err := fs.Parse(args); err != nil {
 		return newExitError(ExitInvalidUsage, "%v", err)
 	}
+	if fs.NArg() != 0 {
+		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
+	}
 	store, err := a.watcherStore(g.StateDir)
 	if err != nil {
 		return wrapExitError(ExitGenericFailure, err)
@@ -132,6 +138,9 @@ func (a App) cmdWatchSetEnabled(g globalFlags, args []string, enabled bool) erro
 	if err := fs.Parse(args); err != nil {
 		return newExitError(ExitInvalidUsage, "%v", err)
 	}
+	if fs.NArg() != 0 {
+		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
+	}
 	if *id == "" {
 		return newExitError(ExitInvalidUsage, "--id is required")
 	}
@@ -169,6 +178,9 @@ func (a App) cmdWatchDelete(g globalFlags, args []string) error {
 	confirm := fs.String("confirm", "", "Confirmation token (watch ID)")
 	if err := fs.Parse(args); err != nil {
 		return newExitError(ExitInvalidUsage, "%v", err)
+	}
+	if fs.NArg() != 0 {
+		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
 	}
 	if *id == "" {
 		return newExitError(ExitInvalidUsage, "--id is required")
