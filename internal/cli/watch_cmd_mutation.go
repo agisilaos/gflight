@@ -22,11 +22,8 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 	emailTo := fs.String("email-to", "", "Email recipient")
 	webhookURL := fs.String("webhook-url", "", "Webhook URL override")
 	dryRun := fs.Bool("dry-run", false, "Preview watch without saving")
-	if err := fs.Parse(args); err != nil {
-		return newExitError(ExitInvalidUsage, "%v", err)
-	}
-	if fs.NArg() != 0 {
-		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
+	if err := parseNamedFlags(fs, args); err != nil {
+		return err
 	}
 	if err := validateQuery(*q); err != nil {
 		return err
@@ -83,11 +80,8 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 func (a App) cmdWatchList(g globalFlags, args []string) error {
 	fs := flag.NewFlagSet("watch list", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
-	if err := fs.Parse(args); err != nil {
-		return newExitError(ExitInvalidUsage, "%v", err)
-	}
-	if fs.NArg() != 0 {
-		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
+	if err := parseNamedFlags(fs, args); err != nil {
+		return err
 	}
 	store, err := a.watcherStore(g.StateDir)
 	if err != nil {
@@ -135,11 +129,8 @@ func (a App) cmdWatchSetEnabled(g globalFlags, args []string, enabled bool) erro
 	fs := flag.NewFlagSet("watch set-enabled", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
 	id := fs.String("id", "", "Watch ID")
-	if err := fs.Parse(args); err != nil {
-		return newExitError(ExitInvalidUsage, "%v", err)
-	}
-	if fs.NArg() != 0 {
-		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
+	if err := parseNamedFlags(fs, args); err != nil {
+		return err
 	}
 	if *id == "" {
 		return newExitError(ExitInvalidUsage, "--id is required")
@@ -176,11 +167,8 @@ func (a App) cmdWatchDelete(g globalFlags, args []string) error {
 	id := fs.String("id", "", "Watch ID")
 	force := fs.Bool("force", false, "Delete without confirmation")
 	confirm := fs.String("confirm", "", "Confirmation token (watch ID)")
-	if err := fs.Parse(args); err != nil {
-		return newExitError(ExitInvalidUsage, "%v", err)
-	}
-	if fs.NArg() != 0 {
-		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
+	if err := parseNamedFlags(fs, args); err != nil {
+		return err
 	}
 	if *id == "" {
 		return newExitError(ExitInvalidUsage, "--id is required")

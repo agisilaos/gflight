@@ -65,11 +65,8 @@ func (a App) resolveProvider(cfg config.Config, g globalFlags) (provider.Provide
 
 func (a App) cmdSearch(g globalFlags, args []string) error {
 	fs, q := newSearchFlagSet("search")
-	if err := fs.Parse(args); err != nil {
-		return newExitError(ExitInvalidUsage, "%v", err)
-	}
-	if fs.NArg() != 0 {
-		return newExitError(ExitInvalidUsage, "unexpected arguments; use named flags for %s", fs.Name())
+	if err := parseNamedFlags(fs, args); err != nil {
+		return err
 	}
 	if err := validateQuery(*q); err != nil {
 		return err
