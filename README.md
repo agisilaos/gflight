@@ -290,3 +290,10 @@ Valid documented commands and previews keep their existing behavior.
 ## Docs
 
 - `docs/README.md` overview of project docs.
+
+### Network diagnostics
+
+Provider and webhook failures report a failure category and HTTP status when
+available. Diagnostics omit request URLs and remote response bodies because they
+can contain API keys or webhook credentials. Existing retry and exit-code
+classifications remain unchanged.

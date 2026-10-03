@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/agisilaos/gflight/internal/model"
+	"github.com/agisilaos/gflight/internal/safeerror"
 )
 
 type SerpAPIProvider struct {
@@ -109,33 +110,31 @@ func (p SerpAPIProvider) fetchWithRetry(client *http.Client, endpoint string, ou
 func (p SerpAPIProvider) fetchOnce(client *http.Client, endpoint string, out *serpResponse) error {
 	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
 	if err != nil {
-		return err
+		return &safeerror.Error{Message: "invalid provider request URL", Cause: err}
 	}
 	resp, err := client.Do(req)
 	if err != nil {
 		if isNetworkTransient(err) {
-			return fmt.Errorf("%w: %v", ErrTransient, err)
+			return fmt.Errorf("%w: %w", ErrTransient, &safeerror.Error{Message: "provider network request failed", Cause: err})
 		}
-		return fmt.Errorf("provider request failed: %w", err)
+		return &safeerror.Error{Message: "provider request failed", Cause: err}
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
-		msg := strings.TrimSpace(string(body))
 		switch {
 		case resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden:
-			return fmt.Errorf("%w: serpapi request failed: %s: %s", ErrAuthRequired, resp.Status, msg)
+			return fmt.Errorf("%w: serpapi request failed: HTTP %d", ErrAuthRequired, resp.StatusCode)
 		case resp.StatusCode == http.StatusTooManyRequests:
-			return fmt.Errorf("%w: serpapi request failed: %s: %s", ErrRateLimited, resp.Status, msg)
+			return fmt.Errorf("%w: serpapi request failed: HTTP %d", ErrRateLimited, resp.StatusCode)
 		case resp.StatusCode >= 500:
-			return fmt.Errorf("%w: serpapi request failed: %s: %s", ErrTransient, resp.Status, msg)
+			return fmt.Errorf("%w: serpapi request failed: HTTP %d", ErrTransient, resp.StatusCode)
 		default:
-			return fmt.Errorf("serpapi request failed: %s: %s", resp.Status, msg)
+			return fmt.Errorf("serpapi request failed: HTTP %d", resp.StatusCode)
 		}
 	}
 	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
-		return fmt.Errorf("decode serpapi response: %w", err)
+		return &safeerror.Error{Message: "decode serpapi response failed", Cause: err}
 	}
 	return nil
 }
