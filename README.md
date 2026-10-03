@@ -361,3 +361,11 @@ succeeded. Existing command error statuses are preserved. The diagnostic goes to
 stderr; output may be incomplete. Saved configuration, watches and completed
 notifications remain applied. Inspect state before retrying a mutation: gflight
 does not retry operations or failed writes to recover a missing receipt.
+
+### Bash completion updates
+
+Regenerate the Bash completion script after upgrading, using the installation
+command above. Completion now suggests child commands only at a group position,
+respects global-option values, and stops at leaf arguments or `--`. It does not
+yet suggest leaf flags or dynamic IDs; no CLI syntax or other shell changes are
+introduced.

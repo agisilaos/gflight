@@ -57,25 +57,29 @@ func completionInstallPath(shell string) (string, error) {
 func bashCompletionScript() string {
 	return `#!/usr/bin/env bash
 _gflight_completions() {
-  local cur prev words cword
-  _init_completion -n : || return
-
-  local commands="search watch notify auth config completion doctor help version"
-  local watch_sub="create list enable disable delete run test"
-  local auth_sub="login status"
-  local config_sub="get set"
-
-  if [[ ${cword} -eq 1 ]]; then
-    COMPREPLY=( $(compgen -W "${commands}" -- "${cur}") )
-    return
-  fi
-
-  case "${words[1]}" in
-    watch) COMPREPLY=( $(compgen -W "${watch_sub}" -- "${cur}") ) ;;
-    auth) COMPREPLY=( $(compgen -W "${auth_sub}" -- "${cur}") ) ;;
-    config) COMPREPLY=( $(compgen -W "${config_sub}" -- "${cur}") ) ;;
-    completion) COMPREPLY=( $(compgen -W "bash zsh fish" -- "${cur}") ) ;;
+  local cur="${COMP_WORDS[COMP_CWORD]}" word i candidates
+  local -a path=()
+  COMPREPLY=()
+  for ((i=1; i<COMP_CWORD; i++)); do
+    word="${COMP_WORDS[i]}"
+    case "$word" in
+      --state-dir|--timeout) ((i++)); [[ $i -lt $COMP_CWORD ]] || return ;;
+      --json|--plain|-q|--quiet|-v|--verbose|--no-input|--no-color) ;;
+      -*) return ;;
+      *) path+=("$word") ;;
+    esac
+  done
+  case "${path[*]}" in
+    "") candidates="search watch notify auth config completion doctor help version" ;;
+    "watch") candidates="create list enable disable delete run test" ;;
+    "auth") candidates="login status" ;;
+    "config") candidates="get set" ;;
+    "notify") candidates="test" ;;
+    "completion") candidates="bash zsh fish path" ;;
+    "completion path") candidates="bash zsh fish" ;;
+    *) return ;;
   esac
+  COMPREPLY=( $(compgen -W "$candidates" -- "$cur") )
 }
 complete -F _gflight_completions gflight
 `
