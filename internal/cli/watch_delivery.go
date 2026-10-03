@@ -9,13 +9,13 @@ import (
 func newPendingAlert(w model.Watch, alert model.Alert) model.PendingAlert {
 	p := model.PendingAlert{Alert: alert}
 	if w.NotifyTerminal {
-		p.Deliveries = append(p.Deliveries, model.AlertDelivery{Channel: "terminal", Status: "pending"})
+		p.Deliveries = append(p.Deliveries, model.AlertDelivery{Channel: "terminal", Status: model.DeliveryPending})
 	}
 	if w.NotifyEmail {
-		p.Deliveries = append(p.Deliveries, model.AlertDelivery{Channel: "email", Destination: w.EmailTo, Status: "pending"})
+		p.Deliveries = append(p.Deliveries, model.AlertDelivery{Channel: "email", Destination: w.EmailTo, Status: model.DeliveryPending})
 	}
 	if w.NotifyWebhook {
-		p.Deliveries = append(p.Deliveries, model.AlertDelivery{Channel: "webhook", Destination: w.WebhookURL, Status: "pending"})
+		p.Deliveries = append(p.Deliveries, model.AlertDelivery{Channel: "webhook", Destination: w.WebhookURL, Status: model.DeliveryPending})
 	}
 	return p
 }

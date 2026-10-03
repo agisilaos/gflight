@@ -42,7 +42,7 @@ RULES:
   - Inspect ambiguous delivery before --retry-uncertain (may duplicate notifications)
 
 OUTPUT:
-  - --json: emits summary object with evaluated/triggered/provider_failures/notify_failures/alerts
+  - --json: emits summary object with evaluated/triggered/provider_failures/notify_failures/pending/uncertain/recovered/alerts
   - human: emits summary line and any alert notifications
 `
 }

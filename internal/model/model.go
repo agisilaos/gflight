@@ -75,8 +75,17 @@ type PendingAlert struct {
 	Alert      Alert           `json:"alert"`
 	Deliveries []AlertDelivery `json:"deliveries"`
 }
+type DeliveryStatus string
+
+const (
+	DeliveryPending   DeliveryStatus = "pending"
+	DeliveryInFlight  DeliveryStatus = "in_flight"
+	DeliveryDelivered DeliveryStatus = "delivered"
+	DeliveryUncertain DeliveryStatus = "uncertain"
+)
+
 type AlertDelivery struct {
-	Channel     string `json:"channel"`
-	Destination string `json:"destination,omitempty"`
-	Status      string `json:"status"`
+	Channel     string         `json:"channel"`
+	Destination string         `json:"destination,omitempty"`
+	Status      DeliveryStatus `json:"status"`
 }

@@ -63,8 +63,8 @@ func runWatchPass(
 		for j := range w.PendingAlerts {
 			for k := range w.PendingAlerts[j].Deliveries {
 				d := &w.PendingAlerts[j].Deliveries[k]
-				if d.Status == "in_flight" {
-					d.Status = "uncertain"
+				if d.Status == model.DeliveryInFlight {
+					d.Status = model.DeliveryUncertain
 				}
 			}
 		}
@@ -77,26 +77,26 @@ func runWatchPass(
 			failed := false
 			for k := range pending.Deliveries {
 				d := &pending.Deliveries[k]
-				if d.Status == "delivered" {
+				if d.Status == model.DeliveryDelivered {
 					continue
 				}
-				if d.Status != "pending" && !(d.Status == "uncertain" && retryUncertain) {
+				if d.Status != model.DeliveryPending && !(d.Status == model.DeliveryUncertain && retryUncertain) {
 					failed = true
 					report.Uncertain++
 					notifyErrs = append(notifyErrs, fmt.Sprintf("watch %s %s outcome uncertain; inspect delivery before --retry-uncertain (may duplicate)", w.ID, d.Channel))
 					continue
 				}
-				d.Status = "in_flight"
+				d.Status = model.DeliveryInFlight
 				if err := checkpoint(); err != nil {
 					return report, notifyErrs, err
 				}
 				err := send(*d, pending.Alert)
-				d.Status = "delivered"
+				d.Status = model.DeliveryDelivered
 				if err != nil {
 					failed = true
-					d.Status = "uncertain"
+					d.Status = model.DeliveryUncertain
 					if errors.Is(err, notify.ErrNotDispatched) {
-						d.Status = "pending"
+						d.Status = model.DeliveryPending
 					} else {
 						report.Uncertain++
 					}

@@ -79,13 +79,16 @@ test -s "$(gflight completion path zsh)" && echo "zsh completion installed"
   - Exit behavior for provider failures:
     - default: exits `4` only when all evaluated provider requests fail
     - strict mode: `--fail-on-provider-errors` exits `4` on any provider failure
-  - Human mode summary: `evaluated`, `triggered`, `provider_failures`, `notify_failures`.
+  - Human mode summary: `evaluated`, `triggered`, `provider_failures`, `notify_failures`, `pending`, `uncertain`, `recovered`.
   - `--plain` output starts with stable summary `key=value` fields, followed by stable alert lines when alerts trigger.
   - JSON mode returns:
     - `evaluated`
     - `triggered`
     - `provider_failures`
     - `notify_failures`
+    - `pending` (remaining alerts)
+    - `uncertain` (held or newly ambiguous channel deliveries)
+    - `recovered` (previously pending alerts completed this pass)
     - `alerts` (triggered alert objects)
 
 ## Agent-Friendly Contract
