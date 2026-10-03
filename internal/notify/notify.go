@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"net/smtp"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/agisilaos/gflight/internal/config"
 	"github.com/agisilaos/gflight/internal/model"
+	"github.com/agisilaos/gflight/internal/safeerror"
 )
 
 type Notifier struct {
@@ -74,27 +74,25 @@ func (n Notifier) sendWebhookWithClient(url string, alert model.Alert, client *h
 	}
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(payload))
 	if err != nil {
-		return err
+		return &safeerror.Error{Message: "invalid webhook request URL", Cause: err}
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("%s: %v", classifyWebhookRequestError(err), err)
+		return &safeerror.Error{Message: classifyWebhookRequestError(err), Cause: err}
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 400 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-		msg := strings.TrimSpace(string(body))
 		switch {
 		case resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden:
-			return fmt.Errorf("webhook authorization failed: %s: %s", resp.Status, msg)
+			return fmt.Errorf("webhook authorization failed: HTTP %d", resp.StatusCode)
 		case resp.StatusCode == http.StatusTooManyRequests:
-			return fmt.Errorf("webhook endpoint rate limited: %s: %s", resp.Status, msg)
+			return fmt.Errorf("webhook endpoint rate limited: HTTP %d", resp.StatusCode)
 		case resp.StatusCode >= 500:
-			return fmt.Errorf("webhook endpoint server error: %s: %s", resp.Status, msg)
+			return fmt.Errorf("webhook endpoint server error: HTTP %d", resp.StatusCode)
 		default:
-			return fmt.Errorf("webhook request failed: %s: %s", resp.Status, msg)
+			return fmt.Errorf("webhook request failed: HTTP %d", resp.StatusCode)
 		}
 	}
 	return nil
