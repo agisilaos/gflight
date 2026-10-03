@@ -21,7 +21,7 @@ func newSearchFlagSet(name string) (*flag.FlagSet, *model.SearchQuery) {
 	fs.StringVar(&q.To, "to", "", "Arrival airport/city code")
 	fs.StringVar(&q.Depart, "depart", "", "Outbound date YYYY-MM-DD")
 	fs.StringVar(&q.Return, "return", "", "Return date YYYY-MM-DD")
-	fs.StringVar(&q.Cabin, "cabin", "economy", "Cabin class")
+	fs.StringVar(&q.Cabin, "cabin", "economy", "Cabin: economy, premium-economy, business, or first")
 	fs.IntVar(&q.Adults, "adults", 1, "Number of adults")
 	fs.IntVar(&q.Children, "children", 0, "Number of children")
 	fs.BoolVar(&q.Nonstop, "nonstop", false, "Nonstop only")
@@ -48,6 +48,9 @@ func validateQuery(q model.SearchQuery) error {
 		if ret.Before(depart) {
 			return newExitError(ExitInvalidUsage, "--return must be on or after --depart")
 		}
+	}
+	if _, err := provider.SerpAPITravelClass(q.Cabin); err != nil {
+		return wrapExitError(ExitInvalidUsage, err)
 	}
 	return nil
 }

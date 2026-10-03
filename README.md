@@ -24,6 +24,15 @@ searching or saving a watch, including `watch create --dry-run`. Previously save
 invalid watches can still be listed or deleted; running one records a failure
 without contacting the provider. Delete and recreate it with corrected dates.
 
+Searches and watches accept `--cabin economy` (default), `premium-economy`,
+`business`, or `first`; numeric aliases `1`–`4` remain accepted. Invalid cabins
+fail before a request or watch is saved. SerpAPI searches use one-way trips
+unless `--return` is supplied; `--nonstop` requests nonstop results.
+
+JSON flight `duration` uses SerpAPI’s total itinerary minutes (including layovers),
+formatted as `240m`. It is omitted when the provider supplies no positive total;
+individual flight segments are not presented as the complete journey.
+
 ```bash
 gflight search --from SFO --to ATH --depart 2026-06-10 --return 2026-06-24 --json
 gflight --plain search --from SFO --to ATH --depart 2026-06-10
