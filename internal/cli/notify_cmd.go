@@ -47,10 +47,10 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 			return wrapNotifyError(err)
 		}
 		if g.Plain && !g.JSON {
-			writePlainKV("ok", "true", "channel", "terminal")
+			a.writePlainKV("ok", "true", "channel", "terminal")
 			return nil
 		}
-		return writeMaybeJSON(g, map[string]any{"ok": true, "channel": "terminal"})
+		return a.writeMaybeJSON(g, map[string]any{"ok": true, "channel": "terminal"})
 	case "email":
 		recipient := *to
 		if err := validateNotifyEmailRuntime(cfg, recipient); err != nil {
@@ -63,10 +63,10 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 			return wrapNotifyError(err)
 		}
 		if g.Plain && !g.JSON {
-			writePlainKV("ok", "true", "channel", "email", "to", recipient)
+			a.writePlainKV("ok", "true", "channel", "email", "to", recipient)
 			return nil
 		}
-		return writeMaybeJSON(g, map[string]any{"ok": true, "channel": "email", "to": recipient})
+		return a.writeMaybeJSON(g, map[string]any{"ok": true, "channel": "email", "to": recipient})
 	case "webhook":
 		webhookURL := *url
 		if err := validateNotifyWebhookRuntime(cfg, webhookURL); err != nil {
@@ -79,10 +79,10 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 			return wrapNotifyError(err)
 		}
 		if g.Plain && !g.JSON {
-			writePlainKV("ok", "true", "channel", "webhook", "url", webhookURL)
+			a.writePlainKV("ok", "true", "channel", "webhook", "url", webhookURL)
 			return nil
 		}
-		return writeMaybeJSON(g, map[string]any{"ok": true, "channel": "webhook", "url": webhookURL})
+		return a.writeMaybeJSON(g, map[string]any{"ok": true, "channel": "webhook", "url": webhookURL})
 	default:
 		return newExitError(ExitInvalidUsage, "--channel must be terminal, email, or webhook")
 	}

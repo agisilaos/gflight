@@ -2,10 +2,12 @@ package cli
 
 import (
 	"fmt"
+	"io"
 )
 
 type App struct {
 	Version string
+	stdout  io.Writer
 }
 
 type globalFlags struct {
@@ -25,7 +27,7 @@ func NewApp(version string) App {
 	return App{Version: version}
 }
 
-func (a App) Run(args []string) error {
+func (a App) run(args []string) error {
 	g, rest, err := parseGlobal(args)
 	if err != nil {
 		return err
@@ -34,7 +36,7 @@ func (a App) Run(args []string) error {
 		return a.help(rest)
 	}
 	if g.Version {
-		fmt.Println(a.Version)
+		fmt.Fprintln(a.output(), a.Version)
 		return nil
 	}
 	if len(rest) == 0 {
@@ -47,7 +49,7 @@ func (a App) Run(args []string) error {
 	case "help", "-h", "--help":
 		return a.help(argv)
 	case "--version", "version":
-		fmt.Println(a.Version)
+		fmt.Fprintln(a.output(), a.Version)
 		return nil
 	case "search":
 		return a.cmdSearch(g, argv)

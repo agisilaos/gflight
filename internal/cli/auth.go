@@ -19,7 +19,7 @@ func (a App) cmdAuth(g globalFlags, args []string) error {
 		}
 		status := authStatus(cfg)
 		if g.Plain && !g.JSON {
-			writePlainKV(
+			a.writePlainKV(
 				"provider", cfg.Provider,
 				"serpapi_key", boolToPlain(status["serpapi_key"]),
 				"smtp_configured", boolToPlain(status["smtp_configured"]),
@@ -27,7 +27,7 @@ func (a App) cmdAuth(g globalFlags, args []string) error {
 			)
 			return nil
 		}
-		return writeMaybeJSON(g, status)
+		return a.writeMaybeJSON(g, status)
 	case "login":
 		cfg, err := config.Load()
 		if err != nil {
@@ -47,10 +47,10 @@ func (a App) cmdAuth(g globalFlags, args []string) error {
 			return wrapExitError(ExitGenericFailure, err)
 		}
 		if g.Plain && !g.JSON {
-			writePlainKV("ok", "true", "provider", cfg.Provider)
+			a.writePlainKV("ok", "true", "provider", cfg.Provider)
 			return nil
 		}
-		return writeMaybeJSON(g, map[string]any{"ok": true, "provider": cfg.Provider})
+		return a.writeMaybeJSON(g, map[string]any{"ok": true, "provider": cfg.Provider})
 	default:
 		if s := suggestClosest(args[0], []string{"login", "status"}); s != "" {
 			return newExitError(ExitInvalidUsage, "unknown auth subcommand %q (did you mean %q?)", args[0], s)
