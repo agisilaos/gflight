@@ -280,6 +280,13 @@ Manual run:
 make smoke-real-provider
 ```
 
+### Search and watch argument validation
+
+Search and watch commands accept named flags only. Unexpected positional words,
+including words before a trailing `--dry-run`, now fail with exit 2 before
+configuration/state access or execution. Put multiword values inside quotes.
+Valid documented commands and previews keep their existing behavior.
+
 ## Docs
 
 - `docs/README.md` overview of project docs.

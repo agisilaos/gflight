@@ -21,8 +21,8 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	runAll := fs.Bool("all", false, "Run all watches")
 	failOnProviderErrors := fs.Bool("fail-on-provider-errors", false, "Exit non-zero when any provider failure occurs")
 	once := fs.Bool("once", true, "Single pass")
-	if err := fs.Parse(args); err != nil {
-		return newExitError(ExitInvalidUsage, "%v", err)
+	if err := parseNamedFlags(fs, args); err != nil {
+		return err
 	}
 	_ = once
 	if (*watchID == "" && !*runAll) || (*watchID != "" && *runAll) {
@@ -149,8 +149,8 @@ func (a App) cmdWatchTest(g globalFlags, args []string) error {
 	fs := flag.NewFlagSet("watch test", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
 	id := fs.String("id", "", "Watch ID")
-	if err := fs.Parse(args); err != nil {
-		return newExitError(ExitInvalidUsage, "%v", err)
+	if err := parseNamedFlags(fs, args); err != nil {
+		return err
 	}
 	if *id == "" {
 		return newExitError(ExitInvalidUsage, "--id is required")
