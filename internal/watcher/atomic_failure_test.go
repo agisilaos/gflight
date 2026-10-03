@@ -52,4 +52,23 @@ func TestFailedSavePreservesPreviousFile(t *testing.T) {
 	if !bytes.Equal(before, after) {
 		t.Fatalf("previous file destroyed after failed save: before=%d bytes after=%d bytes validJSON=%v; %s", len(before), len(after), json.Valid(after), out)
 	}
+	temps, err := filepath.Glob(filepath.Join(filepath.Dir(path), ".state-*"))
+	if err != nil || len(temps) != 0 {
+		t.Fatalf("temporary files after failure: %v, %v", temps, err)
+	}
+
+	s := Store{Path: path}
+	recovered, err := s.Load()
+	if err != nil || len(recovered.Watches) != 1 || recovered.Watches[0].Name != "retained" {
+		t.Fatalf("reload after failed save: %+v, %v", recovered, err)
+	}
+	recovered.Watches[0].Name = "recovered"
+	if err := s.Save(recovered); err != nil {
+		t.Fatal(err)
+	}
+	recovered, err = s.Load()
+	if err != nil || len(recovered.Watches) != 1 || recovered.Watches[0].Name != "recovered" {
+		t.Fatalf("save/reload recovery: %+v, %v", recovered, err)
+	}
+
 }
