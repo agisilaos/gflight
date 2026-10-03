@@ -39,20 +39,21 @@ type SearchResult struct {
 }
 
 type Watch struct {
-	ID              string      `json:"id"`
-	Name            string      `json:"name"`
-	Query           SearchQuery `json:"query"`
-	Enabled         bool        `json:"enabled"`
-	TargetPrice     int         `json:"target_price"`
-	NotifyTerminal  bool        `json:"notify_terminal"`
-	NotifyEmail     bool        `json:"notify_email"`
-	NotifyWebhook   bool        `json:"notify_webhook"`
-	EmailTo         string      `json:"email_to,omitempty"`
-	WebhookURL      string      `json:"webhook_url,omitempty"`
-	LastLowestPrice int         `json:"last_lowest_price"`
-	LastRunAt       time.Time   `json:"last_run_at,omitempty"`
-	CreatedAt       time.Time   `json:"created_at"`
-	UpdatedAt       time.Time   `json:"updated_at"`
+	PendingAlerts   []PendingAlert `json:"pending_alerts,omitempty"`
+	ID              string         `json:"id"`
+	Name            string         `json:"name"`
+	Query           SearchQuery    `json:"query"`
+	Enabled         bool           `json:"enabled"`
+	TargetPrice     int            `json:"target_price"`
+	NotifyTerminal  bool           `json:"notify_terminal"`
+	NotifyEmail     bool           `json:"notify_email"`
+	NotifyWebhook   bool           `json:"notify_webhook"`
+	EmailTo         string         `json:"email_to,omitempty"`
+	WebhookURL      string         `json:"webhook_url,omitempty"`
+	LastLowestPrice int            `json:"last_lowest_price"`
+	LastRunAt       time.Time      `json:"last_run_at,omitempty"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
 }
 
 type WatchStore struct {
@@ -67,4 +68,24 @@ type Alert struct {
 	LowestPrice int       `json:"lowest_price"`
 	Currency    string    `json:"currency"`
 	URL         string    `json:"google_flights_url"`
+}
+
+// PendingAlert retains the original observation and channel progress across runs.
+type PendingAlert struct {
+	Alert      Alert           `json:"alert"`
+	Deliveries []AlertDelivery `json:"deliveries"`
+}
+type DeliveryStatus string
+
+const (
+	DeliveryPending   DeliveryStatus = "pending"
+	DeliveryInFlight  DeliveryStatus = "in_flight"
+	DeliveryDelivered DeliveryStatus = "delivered"
+	DeliveryUncertain DeliveryStatus = "uncertain"
+)
+
+type AlertDelivery struct {
+	Channel     string         `json:"channel"`
+	Destination string         `json:"destination,omitempty"`
+	Status      DeliveryStatus `json:"status"`
 }

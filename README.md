@@ -79,13 +79,16 @@ test -s "$(gflight completion path zsh)" && echo "zsh completion installed"
   - Exit behavior for provider failures:
     - default: exits `4` only when all evaluated provider requests fail
     - strict mode: `--fail-on-provider-errors` exits `4` on any provider failure
-  - Human mode summary: `evaluated`, `triggered`, `provider_failures`, `notify_failures`.
+  - Human mode summary: `evaluated`, `triggered`, `provider_failures`, `notify_failures`, `pending`, `uncertain`, `recovered`.
   - `--plain` output starts with stable summary `key=value` fields, followed by stable alert lines when alerts trigger.
   - JSON mode returns:
     - `evaluated`
     - `triggered`
     - `provider_failures`
     - `notify_failures`
+    - `pending` (remaining alerts)
+    - `uncertain` (held or newly ambiguous channel deliveries)
+    - `recovered` (previously pending alerts completed this pass)
     - `alerts` (triggered alert objects)
 
 ## Agent-Friendly Contract
@@ -306,3 +309,31 @@ state readable. Existing regular-file permissions are preserved; new files use
 0600. Symlink and directory targets are rejected without replacement. Use a
 regular state file. Run one state-writing process at a time; atomic replacement
 does not provide cross-process locking or a power-loss durability guarantee.
+
+### Recovering watch notifications
+
+`watch run` saves the latest price separately from pending notifications. Each
+pending alert retains its original price, time and channel destinations. Successful
+channels are not sent again. Known failures before dispatch (such as missing SMTP
+configuration) remain pending and are retried on the next selected watch run, even
+when the price is unchanged or that provider request fails.
+
+A timeout, interrupted send, or failed save after sending may mean delivery already
+happened. These channels remain uncertain and make the run exit with notification
+failure. Inspect the inbox or webhook receiver first. Only if a possible duplicate
+is acceptable, run `gflight watch run --id <id> --retry-uncertain` (or `--all` to
+apply that decision to every selected watch). This is not exactly-once delivery.
+Unknown recovery statuses are held even with this flag. `watch test` remains an
+explicit, untracked test notification.
+
+JSON/plain reports add `pending` (remaining alerts), `uncertain` (held or newly
+ambiguous channel deliveries), and `recovered` (previously pending alerts completed
+this pass). `triggered` counts new observations; `notify_failures` counts alerts
+with unresolved delivery. A newer price does not overwrite an older pending alert.
+Identical target-price alerts are suppressed while that price remains pending.
+Pending destinations are snapshots: changing watch settings does not retarget old
+alerts. Disabled/unselected watches are not delivered.
+
+Run one watch writer at a time. Retain the state file for recovery and do not use
+older binaries on recovery-bearing state: they do not retain pending deliveries.
+Atomic saves do not provide power-loss durability or cross-process coordination.

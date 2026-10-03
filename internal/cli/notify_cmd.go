@@ -43,7 +43,9 @@ func (a App) cmdNotify(g globalFlags, args []string) error {
 	}
 	switch *channel {
 	case "terminal":
-		n.SendTerminal(alert)
+		if err := n.SendTerminal(alert); err != nil {
+			return wrapNotifyError(err)
+		}
 		if g.Plain && !g.JSON {
 			writePlainKV("ok", "true", "channel", "terminal")
 			return nil

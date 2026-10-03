@@ -20,6 +20,7 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	watchID := fs.String("id", "", "Watch ID")
 	runAll := fs.Bool("all", false, "Run all watches")
 	failOnProviderErrors := fs.Bool("fail-on-provider-errors", false, "Exit non-zero when any provider failure occurs")
+	retryUncertain := fs.Bool("retry-uncertain", false, "Retry ambiguous deliveries; may duplicate notifications")
 	once := fs.Bool("once", true, "Single pass")
 	if err := parseNamedFlags(fs, args); err != nil {
 		return err
@@ -48,18 +49,20 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 		return err
 	}
 	n := newDefaultNotifyDispatcher(notify.Notifier{Config: cfg})
-	report, notifyErrs := runWatchPass(
+	report, notifyErrs, saveErr := runWatchPass(
 		ws.Watches,
 		*watchID,
 		*runAll,
 		p.Search,
-		func(w model.Watch, alert model.Alert) error { return a.sendWatchNotifications(n, w, alert) },
+		func(d model.AlertDelivery, alert model.Alert) error { return sendAlertDelivery(n, d, alert) },
+		func() error { return store.Save(ws) },
+		*retryUncertain,
 		time.Now().UTC(),
 		g.Verbose,
 		os.Stderr,
 	)
-	if err := store.Save(ws); err != nil {
-		return wrapExitError(ExitGenericFailure, err)
+	if saveErr != nil {
+		return wrapExitError(ExitGenericFailure, saveErr)
 	}
 	if g.JSON {
 		if err := writeJSON(report); err != nil {
@@ -72,6 +75,9 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 			"triggered", strconv.Itoa(report.Triggered),
 			"provider_failures", strconv.Itoa(report.ProviderFailures),
 			"notify_failures", strconv.Itoa(report.NotifyFailures),
+			"pending", strconv.Itoa(report.Pending),
+			"uncertain", strconv.Itoa(report.Uncertain),
+			"recovered", strconv.Itoa(report.Recovered),
 		)
 		alerts := append([]model.Alert(nil), report.Alerts...)
 		sort.SliceStable(alerts, func(i, j int) bool {
@@ -96,11 +102,11 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	}
 	if !g.JSON && !g.Plain {
 		fmt.Printf(
-			"Watch run summary: evaluated=%d triggered=%d provider_failures=%d notify_failures=%d\n",
+			"Watch run summary: evaluated=%d triggered=%d provider_failures=%d notify_failures=%d pending=%d uncertain=%d recovered=%d\n",
 			report.Evaluated,
 			report.Triggered,
 			report.ProviderFailures,
-			report.NotifyFailures,
+			report.NotifyFailures, report.Pending, report.Uncertain, report.Recovered,
 		)
 	}
 	if len(notifyErrs) > 0 {
@@ -127,7 +133,9 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 func (a App) sendWatchNotifications(n notifyDispatcher, w model.Watch, alert model.Alert) error {
 	notifyErrs := make([]string, 0)
 	if w.NotifyTerminal {
-		n.SendTerminal(alert)
+		if err := n.SendTerminal(alert); err != nil {
+			notifyErrs = append(notifyErrs, fmt.Sprintf("watch %s terminal failed: %v", w.ID, err))
+		}
 	}
 	if w.NotifyEmail {
 		if err := n.SendEmail(w.EmailTo, alert); err != nil {
