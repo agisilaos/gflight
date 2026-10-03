@@ -24,13 +24,13 @@ func (a App) cmdConfig(g globalFlags, args []string) error {
 			return newExitError(ExitInvalidUsage, "unknown key %q", args[1])
 		}
 		if g.JSON {
-			return writeJSON(map[string]string{"key": args[1], "value": val})
+			return a.writeJSON(map[string]string{"key": args[1], "value": val})
 		}
 		if g.Plain {
-			writePlainKV("key", args[1], "value", val)
+			a.writePlainKV("key", args[1], "value", val)
 			return nil
 		}
-		fmt.Println(val)
+		fmt.Fprintln(a.output(), val)
 		return nil
 	case "set":
 		if len(args) != 3 {
@@ -43,10 +43,10 @@ func (a App) cmdConfig(g globalFlags, args []string) error {
 			return wrapExitError(ExitGenericFailure, err)
 		}
 		if g.Plain && !g.JSON {
-			writePlainKV("ok", "true", "key", args[1])
+			a.writePlainKV("ok", "true", "key", args[1])
 			return nil
 		}
-		return writeMaybeJSON(g, map[string]string{"ok": "true", "key": args[1]})
+		return a.writeMaybeJSON(g, map[string]string{"ok": "true", "key": args[1]})
 	default:
 		if s := suggestClosest(args[0], []string{"get", "set"}); s != "" {
 			return newExitError(ExitInvalidUsage, "unknown config action %q (did you mean %q?)", args[0], s)

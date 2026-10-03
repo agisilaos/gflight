@@ -43,14 +43,14 @@ func (a App) cmdDoctor(g globalFlags, args []string) error {
 		effectiveFailures += report.Warnings
 	}
 	if g.JSON {
-		if err := writeJSON(report); err != nil {
+		if err := a.writeJSON(report); err != nil {
 			return wrapExitError(ExitGenericFailure, err)
 		}
 	} else {
 		for _, c := range report.Checks {
-			fmt.Printf("%s\t%s\t%s\n", strings.ToUpper(c.Status), c.Name, c.Message)
+			fmt.Fprintf(a.output(), "%s\t%s\t%s\n", strings.ToUpper(c.Status), c.Name, c.Message)
 		}
-		fmt.Printf("summary\tfailures=%d\twarnings=%d\n", report.Failures, report.Warnings)
+		fmt.Fprintf(a.output(), "summary\tfailures=%d\twarnings=%d\n", report.Failures, report.Warnings)
 	}
 	if effectiveFailures > 0 {
 		if *strict && report.Warnings > 0 && report.Failures == 0 {

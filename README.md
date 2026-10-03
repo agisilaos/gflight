@@ -354,6 +354,14 @@ Run one watch writer at a time. Retain the state file for recovery and do not us
 older binaries on recovery-bearing state: they do not retain pending deliveries.
 Atomic saves do not provide power-loss durability or cross-process coordination.
 
+### Output delivery failures
+
+A failed or short stdout write exits with status 1 when the command otherwise
+succeeded. Existing command error statuses are preserved. The diagnostic goes to
+stderr; output may be incomplete. Saved configuration, watches and completed
+notifications remain applied. Inspect state before retrying a mutation: gflight
+does not retry operations or failed writes to recover a missing receipt.
+
 ### Bash completion updates
 
 Regenerate the Bash completion script after upgrading, using the installation
