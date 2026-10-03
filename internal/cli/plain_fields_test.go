@@ -15,7 +15,7 @@ func TestPlainFieldEscapes(t *testing.T) {
 	if got := escapePlainField(input); got != `α\\x\t\r\n\x1b\x00\x7f` {
 		t.Fatalf("%q", got)
 	}
-	out, err := captureStdoutForRun(t, func() error { writePlainKV("name", input); return nil })
+	out, err := captureStdoutForRun(t, func() error { NewApp("test").writePlainKV("name", input); return nil })
 	if err != nil || out != "name="+escapePlainField(input)+"\n" {
 		t.Fatalf("%q %v", out, err)
 	}

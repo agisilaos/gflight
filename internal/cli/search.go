@@ -104,7 +104,7 @@ func (a App) cmdSearch(g globalFlags, args []string) error {
 		return wrapProviderError(err)
 	}
 	if g.JSON {
-		return writeJSON(res)
+		return a.writeJSON(res)
 	}
 	if g.Plain {
 		flights := append([]model.Flight(nil), res.Flights...)
@@ -120,9 +120,9 @@ func (a App) cmdSearch(g globalFlags, args []string) error {
 			}
 			return flights[i].Airline < flights[j].Airline
 		})
-		writePlainTableHeader("price", "currency", "airline", "depart_time", "arrive_time", "stops")
+		a.writePlainTableHeader("price", "currency", "airline", "depart_time", "arrive_time", "stops")
 		for _, f := range flights {
-			writePlainTableRow(
+			a.writePlainTableRow(
 				fmt.Sprintf("%d", f.Price),
 				f.Currency,
 				f.Airline,
@@ -131,22 +131,22 @@ func (a App) cmdSearch(g globalFlags, args []string) error {
 				fmt.Sprintf("%d", f.Stops),
 			)
 		}
-		writePlainKV("url", res.URL)
+		a.writePlainKV("url", res.URL)
 		return nil
 	}
 	if len(res.Flights) == 0 {
-		fmt.Printf("No priced flights returned. Open Google Flights:\n%s\n", res.URL)
+		fmt.Fprintf(a.output(), "No priced flights returned. Open Google Flights:\n%s\n", res.URL)
 		return nil
 	}
 	limit := len(res.Flights)
 	if limit > 10 {
 		limit = 10
 	}
-	fmt.Printf("Top %d flight options for %s -> %s on %s\n", limit, q.From, q.To, q.Depart)
+	fmt.Fprintf(a.output(), "Top %d flight options for %s -> %s on %s\n", limit, q.From, q.To, q.Depart)
 	for i := 0; i < limit; i++ {
 		f := res.Flights[i]
-		fmt.Printf("%2d) %4d %s | %s | stops:%d | %s -> %s\n", i+1, f.Price, f.Currency, f.Airline, f.Stops, f.DepartTime, f.ArriveTime)
+		fmt.Fprintf(a.output(), "%2d) %4d %s | %s | stops:%d | %s -> %s\n", i+1, f.Price, f.Currency, f.Airline, f.Stops, f.DepartTime, f.ArriveTime)
 	}
-	fmt.Printf("Google Flights: %s\n", res.URL)
+	fmt.Fprintf(a.output(), "Google Flights: %s\n", res.URL)
 	return nil
 }

@@ -71,12 +71,12 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 		return wrapExitError(ExitGenericFailure, saveErr)
 	}
 	if g.JSON {
-		if err := writeJSON(report); err != nil {
+		if err := a.writeJSON(report); err != nil {
 			return wrapExitError(ExitGenericFailure, err)
 		}
 	}
 	if g.Plain && !g.JSON {
-		writePlainKV(
+		a.writePlainKV(
 			"evaluated", strconv.Itoa(report.Evaluated),
 			"triggered", strconv.Itoa(report.Triggered),
 			"provider_failures", strconv.Itoa(report.ProviderFailures),
@@ -96,7 +96,7 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 			return alerts[i].LowestPrice < alerts[j].LowestPrice
 		})
 		for _, alert := range alerts {
-			writePlainKV(
+			a.writePlainKV(
 				"alert_watch_id", alert.WatchID,
 				"watch_name", alert.WatchName,
 				"price", strconv.Itoa(alert.LowestPrice),
@@ -107,7 +107,7 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 		}
 	}
 	if !g.JSON && !g.Plain {
-		fmt.Printf(
+		fmt.Fprintf(a.output(),
 			"Watch run summary: evaluated=%d triggered=%d provider_failures=%d notify_failures=%d pending=%d uncertain=%d recovered=%d\n",
 			report.Evaluated,
 			report.Triggered,
@@ -126,12 +126,12 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 	}
 	if report.Triggered == 0 {
 		if !g.JSON && !g.Plain {
-			fmt.Println("No alerts triggered")
+			fmt.Fprintln(a.output(), "No alerts triggered")
 		}
 		return nil
 	}
 	if !g.JSON && !g.Plain {
-		fmt.Printf("Triggered %d alert(s)\n", report.Triggered)
+		fmt.Fprintf(a.output(), "Triggered %d alert(s)\n", report.Triggered)
 	}
 	return nil
 }
@@ -195,7 +195,7 @@ func (a App) cmdWatchTest(g globalFlags, args []string) error {
 		if err := a.sendWatchNotifications(n, w, alert); err != nil {
 			return newExitError(ExitNotifyFailure, "%v", err)
 		}
-		return writeMaybeJSON(g, alert)
+		return a.writeMaybeJSON(g, alert)
 	}
 	return newExitError(ExitGenericFailure, "watch not found: %s", *id)
 }

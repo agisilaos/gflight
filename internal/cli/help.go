@@ -7,7 +7,7 @@ import (
 )
 
 func (a App) help(args []string) error {
-	fmt.Print(helpText(args))
+	fmt.Fprint(a.output(), helpText(args))
 	return nil
 }
 

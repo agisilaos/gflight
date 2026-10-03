@@ -16,7 +16,7 @@ func (a App) cmdCompletion(g globalFlags, args []string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println(p)
+		fmt.Fprintln(a.output(), p)
 		return nil
 	}
 	if len(args) != 1 {
@@ -24,13 +24,13 @@ func (a App) cmdCompletion(g globalFlags, args []string) error {
 	}
 	switch strings.ToLower(args[0]) {
 	case "bash":
-		fmt.Print(bashCompletionScript())
+		fmt.Fprint(a.output(), bashCompletionScript())
 		return nil
 	case "zsh":
-		fmt.Print(zshCompletionScript())
+		fmt.Fprint(a.output(), zshCompletionScript())
 		return nil
 	case "fish":
-		fmt.Print(fishCompletionScript())
+		fmt.Fprint(a.output(), fishCompletionScript())
 		return nil
 	default:
 		return newExitError(ExitInvalidUsage, "unsupported shell %q (use bash, zsh, or fish)", args[0])

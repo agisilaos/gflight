@@ -371,3 +371,11 @@ JSON output retains the original field values.
 `notify_terminal`, `notify_email`, `notify_webhook`, `email_to`, `webhook_url`.
 It saves no watch. Use `--json` for the existing full JSON preview; when both
 output flags are supplied, JSON retains precedence.
+
+### Output delivery failures
+
+A failed or short stdout write exits with status 1 when the command otherwise
+succeeded. Existing command error statuses are preserved. The diagnostic goes to
+stderr; output may be incomplete. Saved configuration, watches and completed
+notifications remain applied. Inspect state before retrying a mutation: gflight
+does not retry operations or failed writes to recover a missing receipt.

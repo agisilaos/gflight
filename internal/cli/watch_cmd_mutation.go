@@ -71,7 +71,7 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 	}
 	if opts.dryRun {
 		if g.Plain && !g.JSON {
-			writePlainKV("dry_run", "true", "name", w.Name,
+			a.writePlainKV("dry_run", "true", "name", w.Name,
 				"from", q.From, "to", q.To, "depart", q.Depart, "return", q.Return,
 				"cabin", q.Cabin, "adults", strconv.Itoa(q.Adults), "children", strconv.Itoa(q.Children),
 				"nonstop", strconv.FormatBool(q.Nonstop), "max_price", strconv.Itoa(q.MaxPrice),
@@ -81,7 +81,7 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 				"email_to", w.EmailTo, "webhook_url", w.WebhookURL)
 			return nil
 		}
-		return writeMaybeJSON(g, w)
+		return a.writeMaybeJSON(g, w)
 	}
 	store, err := a.watcherStore(g.StateDir)
 	if err != nil {
@@ -96,10 +96,10 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 		return wrapExitError(ExitGenericFailure, err)
 	}
 	if g.Plain && !g.JSON {
-		writePlainKV("watch_id", w.ID)
+		a.writePlainKV("watch_id", w.ID)
 		return nil
 	}
-	return writeMaybeJSON(g, w)
+	return a.writeMaybeJSON(g, w)
 }
 
 func (a App) cmdWatchList(g globalFlags, args []string) error {
@@ -123,18 +123,18 @@ func (a App) cmdWatchList(g globalFlags, args []string) error {
 		return ws.Watches[i].CreatedAt.After(ws.Watches[j].CreatedAt)
 	})
 	if g.JSON {
-		return writeJSON(ws.Watches)
+		return a.writeJSON(ws.Watches)
 	}
 	if len(ws.Watches) == 0 && !g.Plain {
-		fmt.Println("No watches configured")
+		fmt.Fprintln(a.output(), "No watches configured")
 		return nil
 	}
 	if g.Plain {
-		writePlainTableHeader("id", "name", "enabled", "target_price", "from", "to", "depart")
+		a.writePlainTableHeader("id", "name", "enabled", "target_price", "from", "to", "depart")
 	}
 	for _, w := range ws.Watches {
 		if g.Plain {
-			writePlainTableRow(
+			a.writePlainTableRow(
 				w.ID,
 				w.Name,
 				strconv.FormatBool(w.Enabled),
@@ -145,7 +145,7 @@ func (a App) cmdWatchList(g globalFlags, args []string) error {
 			)
 			continue
 		}
-		fmt.Printf("%s\t%s\t%s->%s\t%s\ttarget=%d\tenabled=%t\n", w.ID, w.Name, w.Query.From, w.Query.To, w.Query.Depart, w.TargetPrice, w.Enabled)
+		fmt.Fprintf(a.output(), "%s\t%s\t%s->%s\t%s\ttarget=%d\tenabled=%t\n", w.ID, w.Name, w.Query.From, w.Query.To, w.Query.Depart, w.TargetPrice, w.Enabled)
 	}
 	return nil
 }
@@ -178,10 +178,10 @@ func (a App) cmdWatchSetEnabled(g globalFlags, args []string, enabled bool) erro
 			return wrapExitError(ExitGenericFailure, err)
 		}
 		if g.Plain && !g.JSON {
-			writePlainKV("watch_id", ws.Watches[i].ID, "enabled", strconv.FormatBool(ws.Watches[i].Enabled))
+			a.writePlainKV("watch_id", ws.Watches[i].ID, "enabled", strconv.FormatBool(ws.Watches[i].Enabled))
 			return nil
 		}
-		return writeMaybeJSON(g, ws.Watches[i])
+		return a.writeMaybeJSON(g, ws.Watches[i])
 	}
 	return newExitError(ExitGenericFailure, "watch not found: %s", *id)
 }
@@ -240,8 +240,8 @@ func (a App) cmdWatchDelete(g globalFlags, args []string) error {
 		return wrapExitError(ExitGenericFailure, err)
 	}
 	if g.Plain && !g.JSON {
-		writePlainKV("deleted_id", opts.id)
+		a.writePlainKV("deleted_id", opts.id)
 		return nil
 	}
-	return writeMaybeJSON(g, map[string]any{"deleted": opts.id})
+	return a.writeMaybeJSON(g, map[string]any{"deleted": opts.id})
 }

@@ -6,45 +6,45 @@ import (
 	"strings"
 )
 
-func writeMaybeJSON(g globalFlags, v any) error {
+func (a App) writeMaybeJSON(g globalFlags, v any) error {
 	if g.JSON {
-		return writeJSON(v)
+		return a.writeJSON(v)
 	}
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(b))
+	fmt.Fprintln(a.output(), string(b))
 	return nil
 }
 
-func writeJSON(v any) error {
+func (a App) writeJSON(v any) error {
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(b))
+	fmt.Fprintln(a.output(), string(b))
 	return nil
 }
 
-func writePlainKV(pairs ...string) {
+func (a App) writePlainKV(pairs ...string) {
 	if len(pairs)%2 != 0 {
-		fmt.Println(joinPlainFields(pairs))
+		fmt.Fprintln(a.output(), joinPlainFields(pairs))
 		return
 	}
 	out := make([]string, 0, len(pairs)/2)
 	for i := 0; i < len(pairs); i += 2 {
 		out = append(out, fmt.Sprintf("%s=%s", escapePlainField(pairs[i]), escapePlainField(pairs[i+1])))
 	}
-	fmt.Println(strings.Join(out, "\t"))
+	fmt.Fprintln(a.output(), strings.Join(out, "\t"))
 }
 
-func writePlainTableHeader(cols ...string) {
-	fmt.Println(joinPlainFields(cols))
+func (a App) writePlainTableHeader(cols ...string) {
+	fmt.Fprintln(a.output(), joinPlainFields(cols))
 }
 
-func writePlainTableRow(cols ...string) {
-	fmt.Println(joinPlainFields(cols))
+func (a App) writePlainTableRow(cols ...string) {
+	fmt.Fprintln(a.output(), joinPlainFields(cols))
 }
 
 func firstOr(v, fallback string) string {
