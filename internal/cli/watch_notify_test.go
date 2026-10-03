@@ -140,8 +140,9 @@ type fakeDispatcher struct {
 	webhookCount  int
 }
 
-func (f *fakeDispatcher) SendTerminal(alert model.Alert) {
+func (f *fakeDispatcher) SendTerminal(alert model.Alert) error {
 	f.terminalCount++
+	return nil
 }
 
 func (f *fakeDispatcher) SendEmail(to string, alert model.Alert) error {

@@ -18,12 +18,15 @@ import (
 	"github.com/agisilaos/gflight/internal/safeerror"
 )
 
+// ErrNotDispatched means validation stopped delivery before any external send.
+var ErrNotDispatched = errors.New("notification not dispatched")
+
 type Notifier struct {
 	Config config.Config
 }
 
-func (n Notifier) SendTerminal(alert model.Alert) {
-	fmt.Fprintf(os.Stderr, "ALERT %s (%s): %s. Lowest price: %d %s\n%s\n",
+func (n Notifier) SendTerminal(alert model.Alert) error {
+	_, err := fmt.Fprintf(os.Stderr, "ALERT %s (%s): %s. Lowest price: %d %s\n%s\n",
 		alert.WatchName,
 		alert.WatchID,
 		alert.Reason,
@@ -31,14 +34,15 @@ func (n Notifier) SendTerminal(alert model.Alert) {
 		alert.Currency,
 		alert.URL,
 	)
+	return err
 }
 
 func (n Notifier) SendEmail(to string, alert model.Alert) error {
 	if n.Config.SMTPHost == "" || n.Config.SMTPUsername == "" || n.Config.SMTPPassword == "" || n.Config.SMTPSender == "" {
-		return fmt.Errorf("email not configured: set smtp_host/smtp_username/smtp_password/smtp_sender")
+		return fmt.Errorf("%w: email not configured: set smtp_host/smtp_username/smtp_password/smtp_sender", ErrNotDispatched)
 	}
 	if to == "" {
-		return fmt.Errorf("missing email recipient")
+		return fmt.Errorf("%w: missing email recipient", ErrNotDispatched)
 	}
 	addr := fmt.Sprintf("%s:%d", n.Config.SMTPHost, n.Config.SMTPPort)
 	auth := smtp.PlainAuth("", n.Config.SMTPUsername, n.Config.SMTPPassword, n.Config.SMTPHost)
@@ -66,7 +70,11 @@ func (n Notifier) SendWebhook(url string, alert model.Alert) error {
 
 func (n Notifier) sendWebhookWithClient(url string, alert model.Alert, client *http.Client) error {
 	if strings.TrimSpace(url) == "" {
-		return fmt.Errorf("missing webhook url")
+		return fmt.Errorf("%w: missing webhook url", ErrNotDispatched)
+	}
+	parsed, parseErr := neturl.Parse(url)
+	if parseErr != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		return fmt.Errorf("%w: invalid webhook request URL", ErrNotDispatched)
 	}
 	payload, err := json.Marshal(alert)
 	if err != nil {

@@ -60,16 +60,19 @@ func TestEvaluateWatchResultPriceDrop(t *testing.T) {
 
 func TestRunWatchPassCollectsNotifyErrors(t *testing.T) {
 	now := time.Date(2026, 2, 19, 22, 0, 0, 0, time.UTC)
-	watches := []model.Watch{{ID: "w1", Name: "athens", Enabled: true, TargetPrice: 700, Query: model.SearchQuery{From: "SFO", To: "ATH", Depart: "2026-06-10"}}}
+	watches := []model.Watch{{ID: "w1", Name: "athens", Enabled: true, NotifyEmail: true, TargetPrice: 700, Query: model.SearchQuery{From: "SFO", To: "ATH", Depart: "2026-06-10"}}}
 
 	search := func(model.SearchQuery) (model.SearchResult, error) {
 		return model.SearchResult{Flights: []model.Flight{{Price: 650, Currency: "USD"}}, URL: "https://x"}, nil
 	}
-	notify := func(model.Watch, model.Alert) error {
+	notify := func(model.AlertDelivery, model.Alert) error {
 		return errors.New("smtp down")
 	}
 
-	alerts, notifyErrs := runWatchPass(watches, "", true, search, notify, now, false, nil)
+	alerts, notifyErrs, err := runWatchPass(watches, "", true, search, notify, func() error { return nil }, false, now, false, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if alerts.Triggered != 1 {
 		t.Fatalf("expected 1 triggered alert, got %d", alerts.Triggered)
 	}
@@ -93,10 +96,13 @@ func TestRunWatchPassVerboseProviderErrors(t *testing.T) {
 	search := func(model.SearchQuery) (model.SearchResult, error) {
 		return model.SearchResult{}, errors.New("provider timeout")
 	}
-	notify := func(model.Watch, model.Alert) error { return nil }
+	notify := func(model.AlertDelivery, model.Alert) error { return nil }
 	var buf bytes.Buffer
 
-	alerts, notifyErrs := runWatchPass(watches, "", true, search, notify, now, true, &buf)
+	alerts, notifyErrs, err := runWatchPass(watches, "", true, search, notify, func() error { return nil }, false, now, true, &buf)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if len(alerts.Alerts) != 0 {
 		t.Fatalf("expected no alerts")
 	}

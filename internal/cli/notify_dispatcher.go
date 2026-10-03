@@ -6,7 +6,7 @@ import (
 )
 
 type notifyDispatcher interface {
-	SendTerminal(alert model.Alert)
+	SendTerminal(alert model.Alert) error
 	SendEmail(to string, alert model.Alert) error
 	SendWebhook(url string, alert model.Alert) error
 }
@@ -19,8 +19,8 @@ func newDefaultNotifyDispatcher(n notify.Notifier) notifyDispatcher {
 	return defaultNotifyDispatcher{n: n}
 }
 
-func (d defaultNotifyDispatcher) SendTerminal(alert model.Alert) {
-	d.n.SendTerminal(alert)
+func (d defaultNotifyDispatcher) SendTerminal(alert model.Alert) error {
+	return d.n.SendTerminal(alert)
 }
 
 func (d defaultNotifyDispatcher) SendEmail(to string, alert model.Alert) error {

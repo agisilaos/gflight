@@ -1,13 +1,15 @@
 gflight watch run - Execute saved watch checks
 
 USAGE:
-  gflight watch run --all [--once] [--fail-on-provider-errors] [global flags]
-  gflight watch run --id <watch-id> [--once] [--fail-on-provider-errors] [global flags]
+  gflight watch run --all [--once] [--fail-on-provider-errors] [--retry-uncertain] [global flags]
+  gflight watch run --id <watch-id> [--once] [--fail-on-provider-errors] [--retry-uncertain] [global flags]
 
 RULES:
   - Exactly one selector is required: --all or --id
   - Default provider failure policy exits 4 only when all evaluated provider requests fail
   - --fail-on-provider-errors exits 4 on any provider failure
+  - Pending delivery is retained per channel; successful channels are not resent
+  - Inspect ambiguous delivery before --retry-uncertain (may duplicate notifications)
 
 OUTPUT:
   - --json: emits summary object with evaluated/triggered/provider_failures/notify_failures/alerts
