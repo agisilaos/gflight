@@ -35,9 +35,10 @@ type serpResponse struct {
 }
 
 type serpFlight struct {
-	Price       int    `json:"price"`
-	AirlineLogo string `json:"airline_logo"`
-	Flights     []struct {
+	TotalDuration int    `json:"total_duration"`
+	Price         int    `json:"price"`
+	AirlineLogo   string `json:"airline_logo"`
+	Flights       []struct {
 		Airline      string `json:"airline"`
 		FlightNumber string `json:"flight_number"`
 		Departure    struct {
@@ -236,10 +237,9 @@ func mapSerpFlight(query model.SearchQuery, raw serpFlight) model.Flight {
 		f.FlightNumber = raw.Flights[0].FlightNumber
 		f.DepartTime = raw.Flights[0].Departure.Time
 		f.ArriveTime = raw.Flights[len(raw.Flights)-1].Arrival.Time
-		dur := raw.Flights[0].Duration
-		if dur > 0 {
-			f.Duration = fmt.Sprintf("%dm", dur)
-		}
+	}
+	if raw.TotalDuration > 0 {
+		f.Duration = fmt.Sprintf("%dm", raw.TotalDuration)
 	}
 	if f.Airline == "" && raw.AirlineLogo != "" {
 		f.Airline = raw.AirlineLogo
