@@ -18,6 +18,10 @@ gflight auth login --provider serpapi --serpapi-key "$GFLIGHT_SERPAPI_KEY"
 
 2. One-shot search:
 
+JSON flight `duration` uses SerpAPI’s total itinerary minutes (including layovers),
+formatted as `240m`. It is omitted when the provider supplies no positive total;
+individual flight segments are not presented as the complete journey.
+
 ```bash
 gflight search --from SFO --to ATH --depart 2026-06-10 --return 2026-06-24 --json
 gflight --plain search --from SFO --to ATH --depart 2026-06-10

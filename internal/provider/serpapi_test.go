@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -111,5 +112,39 @@ func TestBuildSerpURLUsesBasePath(t *testing.T) {
 	}
 	if !strings.Contains(got, "api_key=key") {
 		t.Fatalf("expected api key in url: %s", got)
+	}
+}
+
+func TestSerpItineraryDuration(t *testing.T) {
+	for _, tc := range []struct {
+		name, raw, want string
+		invalid         bool
+	}{
+		{"direct", `{"total_duration":120,"flights":[{"duration":120}]}`, "120m", false},
+		{"connection", `{"total_duration":240,"flights":[{"duration":60},{"duration":120}],"layovers":[{"duration":60}]}`, "240m", false},
+		{"overnight zones", `{"total_duration":780,"flights":[{"duration":120,"departure_airport":{"time":"2026-11-01 23:00"}},{"duration":600,"arrival_airport":{"time":"2026-11-03 06:00"}}]}`, "780m", false},
+		{"missing", `{"flights":[{"duration":60},{"duration":120}]}`, "", false},
+		{"null", `{"total_duration":null,"flights":[{"duration":60}]}`, "", false},
+		{"zero", `{"total_duration":0,"flights":[{"duration":60}]}`, "", false},
+		{"negative", `{"total_duration":-1,"flights":[{"duration":60}]}`, "", false},
+		{"malformed", `{"total_duration":"240","flights":[{"duration":60}]}`, "", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var raw serpFlight
+			err := json.Unmarshal([]byte(tc.raw), &raw)
+			if tc.invalid {
+				if err == nil {
+					t.Fatal("accepted malformed duration")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := mapSerpFlight(model.SearchQuery{}, raw)
+			if got.Duration != tc.want {
+				t.Fatalf("duration=%q want=%q", got.Duration, tc.want)
+			}
+		})
 	}
 }
