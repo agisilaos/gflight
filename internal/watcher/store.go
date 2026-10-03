@@ -41,5 +41,5 @@ func (s Store) Save(ws model.WatchStore) error {
 		return err
 	}
 	b = append(b, '\n')
-	return os.WriteFile(s.Path, b, 0o600)
+	return replaceState(s.Path, b)
 }
