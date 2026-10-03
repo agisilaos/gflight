@@ -3,3 +3,9 @@ root.txt	--help
 watch-run.txt	help watch run
 doctor.txt	help doctor
 completion.txt	help completion
+search.txt	help search
+search-suffix.txt	search --help
+watch-create.txt	help watch create
+watch-create-suffix.txt	watch create --help
+watch-delete.txt	help watch delete
+watch-delete-suffix.txt	watch delete --help

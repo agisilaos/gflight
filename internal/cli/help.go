@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"flag"
 	"fmt"
 	"strings"
 )
@@ -16,6 +17,26 @@ func helpText(args []string) string {
 	}
 	k := strings.ToLower(strings.Join(args, " "))
 	switch k {
+	case "search":
+		fs, _ := newSearchFlagSet("search")
+		return focusedFlagHelp(fs, "Search flight options", `Required: --from, --to, --depart (YYYY-MM-DD).
+Optional --return must be on or after departure. Without it, the trip is one-way.
+Search queries the configured provider; there is no search --dry-run flag.
+Use --json or --plain for automation; see gflight --help for global flags.`, "gflight search --from SFO --to ATH --depart 2026-12-01")
+	case "watch create":
+		fs, _, _ := newWatchCreateFlagSet()
+		return focusedFlagHelp(fs, "Save a price watch", `Required: --from, --to, --depart (YYYY-MM-DD).
+Optional --return must be on or after departure. Without it, the trip is one-way.
+Watches start enabled. Creation does not search or send notifications.
+--dry-run reads configuration defaults and previews without saving a watch.
+Disable terminal alerts explicitly with --notify-terminal=false.
+Use --json for a structured preview; see gflight --help for global flags.`, "gflight watch create --from SFO --to ATH --depart 2026-12-01 --target-price 700 --dry-run")
+	case "watch delete":
+		fs, _ := newWatchDeleteFlagSet()
+		return focusedFlagHelp(fs, "Delete a saved watch", `Required: --id plus either --force or --confirm with the same watch ID.
+There is no interactive prompt or delete --dry-run flag.
+--no-input requires --force even when --confirm matches.
+Find IDs with gflight watch list. See gflight --help for global flags.`, "gflight watch delete --id w_123 --confirm w_123")
 	case "watch", "watch run":
 		return watchRunHelpText()
 	case "completion":
@@ -77,4 +98,13 @@ EXAMPLES:
   gflight completion fish > ~/.config/fish/completions/gflight.fish
   gflight completion path zsh
 `
+}
+
+func focusedFlagHelp(fs *flag.FlagSet, summary, rules, example string) string {
+	var out strings.Builder
+	fmt.Fprintf(&out, "gflight %s - %s\n\nUSAGE:\n  gflight %s [flags] [global flags]\n\nRULES:\n%s\n\nFLAGS:\n", fs.Name(), summary, fs.Name(), rules)
+	fs.SetOutput(&out)
+	fs.PrintDefaults()
+	fmt.Fprintf(&out, "\nEXAMPLE:\n  %s\n", example)
+	return out.String()
 }

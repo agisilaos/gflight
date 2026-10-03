@@ -1,0 +1,55 @@
+gflight watch create - Save a price watch
+
+USAGE:
+  gflight watch create [flags] [global flags]
+
+RULES:
+Required: --from, --to, --depart (YYYY-MM-DD).
+Optional --return must be on or after departure. Without it, the trip is one-way.
+Watches start enabled. Creation does not search or send notifications.
+--dry-run reads configuration defaults and previews without saving a watch.
+Disable terminal alerts explicitly with --notify-terminal=false.
+Use --json for a structured preview; see gflight --help for global flags.
+
+FLAGS:
+  -adults int
+    	Number of adults (default 1)
+  -cabin string
+    	Cabin: economy, premium-economy, business, or first (default "economy")
+  -children int
+    	Number of children
+  -currency string
+    	Currency code (default "USD")
+  -depart string
+    	Outbound date YYYY-MM-DD
+  -dry-run
+    	Preview watch without saving
+  -email-to string
+    	Email recipient (default: configured notify_email)
+  -from string
+    	Departure airport/city code
+  -max-price int
+    	Maximum acceptable price
+  -name string
+    	Watch name (default: FROM-TO-DEPART)
+  -nonstop
+    	Nonstop only
+  -notify-email
+    	Send email notifications
+  -notify-terminal
+    	Send terminal notifications (default true)
+  -notify-webhook
+    	Send webhook notifications
+  -return string
+    	Return date YYYY-MM-DD
+  -sort string
+    	Sort mode (default "price")
+  -target-price int
+    	Alert when price <= target; 0 alerts on price drops
+  -to string
+    	Arrival airport/city code
+  -webhook-url string
+    	Webhook URL override (default: configured webhook_url)
+
+EXAMPLE:
+  gflight watch create --from SFO --to ATH --depart 2026-12-01 --target-price 700 --dry-run

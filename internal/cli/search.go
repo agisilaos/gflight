@@ -86,7 +86,7 @@ func (a App) cmdSearch(g globalFlags, args []string) error {
 		return err
 	}
 	if err := validateQuery(*q); err != nil {
-		return err
+		return newExitError(ExitInvalidUsage, "%v\nSee: gflight help search", err)
 	}
 	cfg, err := config.Load()
 	if err != nil {
