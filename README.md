@@ -18,6 +18,12 @@ gflight auth login --provider serpapi --serpapi-key "$GFLIGHT_SERPAPI_KEY"
 
 2. One-shot search:
 
+`--depart` and optional `--return` must be real calendar dates in `YYYY-MM-DD`
+format. The return date must be on or after departure. Invalid dates fail before
+searching or saving a watch, including `watch create --dry-run`. Previously saved
+invalid watches can still be listed or deleted; running one records a failure
+without contacting the provider. Delete and recreate it with corrected dates.
+
 ```bash
 gflight search --from SFO --to ATH --depart 2026-06-10 --return 2026-06-24 --json
 gflight --plain search --from SFO --to ATH --depart 2026-06-10
