@@ -53,7 +53,13 @@ func (a App) cmdWatchRun(g globalFlags, args []string) error {
 		ws.Watches,
 		*watchID,
 		*runAll,
-		p.Search,
+
+		func(q model.SearchQuery) (model.SearchResult, error) {
+			if err := validateQuery(q); err != nil {
+				return model.SearchResult{}, err
+			}
+			return p.Search(q)
+		},
 		func(d model.AlertDelivery, alert model.Alert) error { return sendAlertDelivery(n, d, alert) },
 		func() error { return store.Save(ws) },
 		*retryUncertain,

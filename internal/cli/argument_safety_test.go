@@ -73,3 +73,23 @@ func TestUnsupportedCabinRejectsSearchAndWatch(t *testing.T) {
 		})
 	}
 }
+
+func TestInvalidTravelDatesRejectBeforeEffects(t *testing.T) {
+	for _, dates := range [][2]string{{"2026-02-30", ""}, {"2026-1-02", ""}, {"tomorrow", ""}, {"2026-11-10", "2026-11-01"}, {"2026-11-10", "2026-02-30"}} {
+		for _, command := range [][]string{{"search"}, {"watch", "create"}, {"watch", "create", "--dry-run"}} {
+			t.Run(dates[0]+dates[1]+command[0], func(t *testing.T) {
+				dir := t.TempDir()
+				t.Setenv("HOME", dir)
+				t.Setenv("XDG_CONFIG_HOME", dir)
+				args := append([]string{"--state-dir", dir}, command...)
+				args = append(args, "--from", "SFO", "--to", "ATH", "--depart", dates[0], "--return", dates[1])
+				if err := NewApp("test").Run(args); ExitCode(err) != ExitInvalidUsage {
+					t.Fatalf("expected usage error, got %v", err)
+				}
+				if _, err := os.Stat(filepath.Join(dir, "watches.json")); !os.IsNotExist(err) {
+					t.Fatalf("unexpected state: %v", err)
+				}
+			})
+		}
+	}
+}

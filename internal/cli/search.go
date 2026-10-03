@@ -35,6 +35,20 @@ func validateQuery(q model.SearchQuery) error {
 	if q.From == "" || q.To == "" || q.Depart == "" {
 		return newExitError(ExitInvalidUsage, "--from, --to, and --depart are required")
 	}
+
+	depart, err := time.Parse("2006-01-02", q.Depart)
+	if err != nil {
+		return newExitError(ExitInvalidUsage, "invalid --depart date %q (use YYYY-MM-DD)", q.Depart)
+	}
+	if q.Return != "" {
+		ret, err := time.Parse("2006-01-02", q.Return)
+		if err != nil {
+			return newExitError(ExitInvalidUsage, "invalid --return date %q (use YYYY-MM-DD)", q.Return)
+		}
+		if ret.Before(depart) {
+			return newExitError(ExitInvalidUsage, "--return must be on or after --depart")
+		}
+	}
 	if _, err := provider.SerpAPITravelClass(q.Cabin); err != nil {
 		return wrapExitError(ExitInvalidUsage, err)
 	}

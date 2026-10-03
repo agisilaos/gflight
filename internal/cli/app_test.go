@@ -441,3 +441,38 @@ func onlyWatch(t *testing.T, stateDir string) model.Watch {
 	}
 	return ws.Watches[0]
 }
+
+func TestValidTravelDates(t *testing.T) {
+	for _, dates := range [][2]string{{"2028-02-29", ""}, {"2026-11-10", "2026-11-10"}, {"2026-11-10", "2026-11-20"}} {
+		if err := validateQuery(model.SearchQuery{From: "SFO", To: "ATH", Depart: dates[0], Return: dates[1]}); err != nil {
+			t.Fatalf("dates=%v err=%v", dates, err)
+		}
+	}
+}
+
+func TestStoredInvalidWatchRemainsInspectableAndRemovable(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME", dir)
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	app := NewApp("test")
+	if err := app.Run([]string{"auth", "login", "--provider", "google-url"}); err != nil {
+		t.Fatal(err)
+	}
+	disk := watcher.Store{Path: filepath.Join(dir, "watches.json")}
+	if err := disk.Save(model.WatchStore{Watches: []model.Watch{{ID: "invalid", Enabled: true, Query: model.SearchQuery{From: "SFO", To: "ATH", Depart: "2026-02-30"}}}}); err != nil {
+		t.Fatal(err)
+	}
+	if err := app.Run([]string{"--state-dir", dir, "watch", "run", "--id", "invalid"}); ExitCode(err) != ExitProviderFailure {
+		t.Fatalf("expected invalid watch failure, got %v", err)
+	}
+	if err := app.Run([]string{"--state-dir", dir, "watch", "list"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := app.Run([]string{"--state-dir", dir, "watch", "delete", "--id", "invalid", "--force"}); err != nil {
+		t.Fatal(err)
+	}
+	ws, err := disk.Load()
+	if err != nil || len(ws.Watches) != 0 {
+		t.Fatalf("state=%+v err=%v", ws, err)
+	}
+}

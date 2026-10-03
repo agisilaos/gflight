@@ -18,6 +18,12 @@ gflight auth login --provider serpapi --serpapi-key "$GFLIGHT_SERPAPI_KEY"
 
 2. One-shot search:
 
+`--depart` and optional `--return` must be real calendar dates in `YYYY-MM-DD`
+format. The return date must be on or after departure. Invalid dates fail before
+searching or saving a watch, including `watch create --dry-run`. Previously saved
+invalid watches can still be listed or deleted; running one records a failure
+without contacting the provider. Delete and recreate it with corrected dates.
+
 Searches and watches accept `--cabin economy` (default), `premium-economy`,
 `business`, or `first`; numeric aliases `1`–`4` remain accepted. Invalid cabins
 fail before a request or watch is saved. SerpAPI searches use one-way trips
