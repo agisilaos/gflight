@@ -18,6 +18,11 @@ gflight auth login --provider serpapi --serpapi-key "$GFLIGHT_SERPAPI_KEY"
 
 2. One-shot search:
 
+Searches and watches accept `--cabin economy` (default), `premium-economy`,
+`business`, or `first`; numeric aliases `1`–`4` remain accepted. Invalid cabins
+fail before a request or watch is saved. SerpAPI searches use one-way trips
+unless `--return` is supplied; `--nonstop` requests nonstop results.
+
 JSON flight `duration` uses SerpAPI’s total itinerary minutes (including layovers),
 formatted as `240m`. It is omitted when the provider supplies no positive total;
 individual flight segments are not presented as the complete journey.

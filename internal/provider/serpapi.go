@@ -63,7 +63,10 @@ func (p SerpAPIProvider) Search(query model.SearchQuery) (model.SearchResult, er
 	if client == nil {
 		client = &http.Client{Timeout: p.resolvedTimeout()}
 	}
-	endpoint := buildSerpURL(p.baseURL(), query, p.APIKey)
+	endpoint, err := buildSerpURL(p.baseURL(), query, p.APIKey)
+	if err != nil {
+		return model.SearchResult{}, err
+	}
 
 	var payload serpResponse
 	if err := p.fetchWithRetry(client, endpoint, &payload); err != nil {
@@ -192,28 +195,32 @@ func (p SerpAPIProvider) baseURL() string {
 	return "https://serpapi.com"
 }
 
-func buildSerpURL(baseURL string, query model.SearchQuery, apiKey string) string {
+func buildSerpURL(baseURL string, query model.SearchQuery, apiKey string) (string, error) {
+	cabin, err := SerpAPITravelClass(query.Cabin)
+	if err != nil {
+		return "", err
+	}
 	v := url.Values{}
 	v.Set("engine", "google_flights")
 	v.Set("api_key", apiKey)
 	v.Set("departure_id", query.From)
 	v.Set("arrival_id", query.To)
 	v.Set("outbound_date", query.Depart)
+	v.Set("type", "2")
 	if query.Return != "" {
+		v.Set("type", "1")
 		v.Set("return_date", query.Return)
 	}
 	v.Set("adults", strconv.Itoa(maxInt(query.Adults, 1)))
 	v.Set("children", strconv.Itoa(maxInt(query.Children, 0)))
-	if query.Cabin != "" {
-		v.Set("travel_class", query.Cabin)
-	}
+	v.Set("travel_class", cabin)
 	if query.Nonstop {
-		v.Set("stops", "0")
+		v.Set("stops", "1")
 	}
 	if query.Currency != "" {
 		v.Set("currency", query.Currency)
 	}
-	return strings.TrimRight(baseURL, "/") + "/search.json?" + v.Encode()
+	return strings.TrimRight(baseURL, "/") + "/search.json?" + v.Encode(), nil
 }
 
 func mapSerpFlight(query model.SearchQuery, raw serpFlight) model.Flight {
@@ -252,4 +259,20 @@ func maxInt(v, fallback int) int {
 		return fallback
 	}
 	return v
+}
+
+// SerpAPITravelClass translates CLI cabin labels and legacy numeric aliases.
+func SerpAPITravelClass(cabin string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(cabin)) {
+	case "", "economy", "1":
+		return "1", nil
+	case "premium-economy", "2":
+		return "2", nil
+	case "business", "3":
+		return "3", nil
+	case "first", "4":
+		return "4", nil
+	default:
+		return "", fmt.Errorf("invalid cabin %q (use economy, premium-economy, business, or first)", cabin)
+	}
 }
