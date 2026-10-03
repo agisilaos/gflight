@@ -70,6 +70,17 @@ func (a App) cmdWatchCreate(g globalFlags, args []string) error {
 		UpdatedAt:      time.Now().UTC(),
 	}
 	if opts.dryRun {
+		if g.Plain && !g.JSON {
+			a.writePlainKV("dry_run", "true", "name", w.Name,
+				"from", q.From, "to", q.To, "depart", q.Depart, "return", q.Return,
+				"cabin", q.Cabin, "adults", strconv.Itoa(q.Adults), "children", strconv.Itoa(q.Children),
+				"nonstop", strconv.FormatBool(q.Nonstop), "max_price", strconv.Itoa(q.MaxPrice),
+				"currency", q.Currency, "sort_by", q.SortBy, "enabled", strconv.FormatBool(w.Enabled),
+				"target_price", strconv.Itoa(w.TargetPrice), "notify_terminal", strconv.FormatBool(w.NotifyTerminal),
+				"notify_email", strconv.FormatBool(w.NotifyEmail), "notify_webhook", strconv.FormatBool(w.NotifyWebhook),
+				"email_to", w.EmailTo, "webhook_url", w.WebhookURL)
+			return nil
+		}
 		return a.writeMaybeJSON(g, w)
 	}
 	store, err := a.watcherStore(g.StateDir)
@@ -114,7 +125,7 @@ func (a App) cmdWatchList(g globalFlags, args []string) error {
 	if g.JSON {
 		return a.writeJSON(ws.Watches)
 	}
-	if len(ws.Watches) == 0 {
+	if len(ws.Watches) == 0 && !g.Plain {
 		fmt.Fprintln(a.output(), "No watches configured")
 		return nil
 	}

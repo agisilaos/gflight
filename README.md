@@ -354,6 +354,24 @@ Run one watch writer at a time. Retain the state file for recovery and do not us
 older binaries on recovery-bearing state: they do not retain pending deliveries.
 Atomic saves do not provide power-loss durability or cross-process coordination.
 
+### Plain field encoding
+
+Plain tables use tabs between fields and one newline per row. Each field escapes
+backslash as `\\`, tab as `\t`, carriage return as `\r`, newline as `\n`, and
+other ASCII controls (including ESC and DEL) as lowercase `\xHH`. Unicode text
+is preserved. Split rows/columns first, then decode escapes in a single pass;
+for key/value records split each field at its first `=` before decoding.
+Consumers that previously treated backslashes literally must adopt this decoder.
+JSON output retains the original field values.
+
+`--plain watch list` always prints its seven-column header, even when empty.
+`--plain watch create --dry-run` prints one tab-separated key/value preview:
+`dry_run`, `name`, `from`, `to`, `depart`, `return`, `cabin`, `adults`, `children`,
+`nonstop`, `max_price`, `currency`, `sort_by`, `enabled`, `target_price`,
+`notify_terminal`, `notify_email`, `notify_webhook`, `email_to`, `webhook_url`.
+It saves no watch. Use `--json` for the existing full JSON preview; when both
+output flags are supplied, JSON retains precedence.
+
 ### Output delivery failures
 
 A failed or short stdout write exits with status 1 when the command otherwise
