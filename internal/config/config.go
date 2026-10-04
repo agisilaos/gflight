@@ -116,7 +116,22 @@ func Save(cfg Config) error {
 		return err
 	}
 	b = append(b, '\n')
-	return os.WriteFile(path, b, 0o600)
+	f, err := os.CreateTemp(filepath.Dir(path), ".config-*")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(f.Name())
+	defer f.Close()
+	if _, err := f.Write(b); err != nil {
+		return err
+	}
+	if err := f.Sync(); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return os.Rename(f.Name(), path)
 }
 
 func applyEnv(cfg *Config) {

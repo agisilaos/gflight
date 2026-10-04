@@ -319,6 +319,12 @@ classifications remain unchanged.
 
 ### Local state save failures
 
+Configuration updates are written to a private temporary file beside the target,
+then replace it only after writing, syncing, and closing succeed. A failed staging
+write leaves the previous configuration readable. Saved configs use permissions
+0600. Atomic replacement does not serialize concurrent writers or guarantee
+recovery after power loss.
+
 State updates are staged beside the destination and atomically replace it only
 after the complete file is written and closed. Failed staging leaves the previous
 state readable. Existing regular-file permissions are preserved; new files use
