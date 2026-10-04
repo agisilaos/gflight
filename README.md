@@ -5,8 +5,14 @@
 ## Install
 
 ```bash
-go build ./cmd/gflight
+mkdir -p "$HOME/.local/bin"
+go build -o "$HOME/.local/bin/gflight" ./cmd/gflight
+export PATH="$HOME/.local/bin:$PATH"
+gflight --help
 ```
+
+Run the install commands from this checkout. Add `~/.local/bin` to your shell
+startup PATH to use the installed binary in future terminals.
 
 ## Usage
 
@@ -318,6 +324,12 @@ can contain API keys or webhook credentials. Existing retry and exit-code
 classifications remain unchanged.
 
 ### Local state save failures
+
+Configuration updates are written to a private temporary file beside the target,
+then replace it only after writing, syncing, and closing succeed. A failed staging
+write leaves the previous configuration readable. Saved configs use permissions
+0600. Atomic replacement does not serialize concurrent writers or guarantee
+recovery after power loss.
 
 State updates are staged beside the destination and atomically replace it only
 after the complete file is written and closed. Failed staging leaves the previous
