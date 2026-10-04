@@ -5,8 +5,14 @@
 ## Install
 
 ```bash
-go build ./cmd/gflight
+mkdir -p "$HOME/.local/bin"
+go build -o "$HOME/.local/bin/gflight" ./cmd/gflight
+export PATH="$HOME/.local/bin:$PATH"
+gflight --help
 ```
+
+Run the install commands from this checkout. Add `~/.local/bin` to your shell
+startup PATH to use the installed binary in future terminals.
 
 ## Usage
 
